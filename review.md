@@ -354,3 +354,223 @@ ____
 **src/screens/chatList/index.tsx**
 
 1. Типизация для `renderItem`
+____
+
+**Добавленно новое ниже**
+
+**src/screens/community/components/feedItem/hook.ts**
+
+1. Нужно обсудить `handleLikePost` а именно два диспатча и зачем он тут вообще этот метод. 
+2. А так же `setLike/setLikePostThunk` в самом `reducer` 
+
+____
+
+**src/screens/community/components/feeds/hook.ts**
+1. Убери деструктуризацию 
+```
+ const { feeds } = useAppSelector((store) => store.community);
+```
+
+___
+**src/screens/community/components/header/index.tsx**
+
+1. У тебя разметка практически одна и таже что для `isEmpty` что нет. Лучше сделай одну разметку а уже пару деталей добавляй или уберай по условию `isEmpty`. Там будет добавляться один класс и `popUpContent` контейнер для `isEmpty
+` 
+
+____
+
+**src/screens/community/hook.ts**
+
+1. Убери деструктуризацию 
+```
+ const { feeds } = useAppSelector((store) => store.community);
+
+```
+
+2. Если больше зависемостей не предвидется то можно засунуть и в один `useEffect`
+
+```
+useEffect(() => {
+    dispatch(setUploaded());
+  }, []);
+
+  useLayoutEffect(() => {
+    dispatch(getFeedThunk());
+  }, []);
+
+```
+
+3. Не нужна зависимость `feeds.length` так как ты и так туда положила `feeds` 
+```
+ useEffect(() => {
+    if (feeds?.length) {
+      hideEmptyModal();
+    }
+  }, [feeds, feeds.length]);
+```
+
+____
+
+**src/screens/community/index.tsx**
+
+1. Обсудить как работает этот компонент. А именно ты при `isEmpty` отрисовываешь один layout но тот же можешь поменять `hideEmptyModal` и тем самым отрисовать другой. (это все напоминание для меня). 
+
+Если при `isEmpty` просто отображается какаято модалка с оповещением тогда все ок
+
+____
+**src/screens/creatingGroup/components/form/hook.ts**
+
+1. Так как это один и тот же обработчик то можно просто сделать его общим. И вместо нескольких иметь один
+
+```
+type Options = {
+  key: 'name' | 'description';
+  value: string;
+}
+
+const updateGroupInfoByKey = useCallback((options: Options) => {
+  dispatch(setGroupInfo(options));
+}, [])
+```
+
+____
+
+**src/screens/creatingGroup/components/uploadingImage/index.tsx**
+
+1. Цвета вынести в константы `'#00C8FE', '#4FACFE'`
+
+
+____
+
+**src/screens/group/components/coinData/hook.ts**
+
+1. Убрать деструктуризацию
+
+```
+ const { group } = useAppSelector((store) => store.groups);
+```
+
+____
+
+**src/screens/group/components/headerInfo/hook.ts**
+
+1. Убрать деструктуризацию
+
+```
+ const { group } = useAppSelector((store) => store.groups);
+```
+____
+
+**src/screens/group/components/roadMap/hook.ts**
+
+1. Убрать деструктуризацию
+
+```
+ const { group } = useAppSelector((store) => store.groups);
+```
+____
+**src/screens/group/components/socials/hook.ts**
+
+1. Убрать деструктуризацию
+
+```
+ const { group } = useAppSelector((store) => store.groups);
+```
+
+___
+
+**src/screens/group/hook.ts**
+
+1. `headerProps` заверни в `useMemo`
+2. Убери деструктуризацию 
+```
+const { modalVisibility } = useAppSelector((store) => store.app);
+```
+
+3. Как то ты выборочно решаешь что завернуть в `useCallback` а что нет. В данном случае все обработчики можно завернуть.
+
+
+___
+**src/screens/group/index.tsx**
+
+1. Это задел на будущее или что ? в `BottomSheetButton`
+
+```
+ onPress={() => {}}
+```
+
+___
+
+**src/screens/groups/components/emptyGroups/index.tsx**
+
+1. Отфарматируй файл (перенос строк)
+
+___
+**src/screens/groups/components/header/index.tsx**
+
+1. Отфарматируй файл (перенос строк)
+
+___
+
+**src/screens/groups/components/item/index.tsx**
+
+1. Отфарматируй файл (перенос строк)
+
+___
+
+**src/screens/roadMap/components/roadMapItem/index.tsx**
+
+1. Цвета в константы `'#00C8FE', '#4FACFE'`
+2. Вынеси в обработчик. Не надо все группировать прямо в разметке
+```
+ onChangeText={(text) => {
+    setError('');
+    handleChangeRoadMapValue(text);
+  }}
+```
+
+___
+
+**src/screens/roadMap/index.tsx**
+
+1. Цвета вынеси в костанты `'#00C8FE', '#4FACFE'`.
+
+___
+**src/screens/uploadPostFile/components/checkbox/hook.ts**
+
+1. Убери деструктуризацию 
+```
+const { selectedPostImages } = useAppSelector((store) => store.community);
+```
+
+
+___
+**src/screens/uploadPostFile/hook.ts**
+
+1. Перенос строк
+2. Мне кажеться я где то уже встречал точно такую же функцию как `hasIOSPermission`. Нельзя ее вынести в утилиты и переиспользовать ?
+
+3. В другом компоннете похожем у тебя данный массив вынесен в переменную `['UNAVAILABLE', 'BLOCKED', 'DENIED']` а тут пожалела. 
+
+___
+**src/shared/authInput/nickNameInput.tsx**
+
+1. Перенос строк
+2. Цвет в константы `"#8C8F9C"`
+
+
+___
+**src/shared/authInput/phoneInput..tsx**
+
+1. Перенос строк
+2.  В константы `"#8C8F9C"`
+
+___
+**src/shared/header/index.tsx**
+
+1. Перенос строк 
+
+___
+**src/shared/input/index.tsx**
+
+1. В константы `['#00C8FE', '#4FACFE']`
