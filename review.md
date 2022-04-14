@@ -11,7 +11,7 @@
 1. `{format(parseISO(relatedVisitDate), MM_DD_YY)}`  такие вещи выноси в переменные из разметки. И по хорошему можно еще проверить дату на валидность или обернуть в `try catch` 
 
 
-**[src/screens/ChatsInOrder/ChatItem/index.tsx}(https://github.com/lotatech/soft-homecare-app/pull/7/files#diff-04af58b6bb9b975b794a2848214291ddde5e83ad3827d107ead138790090e44fR143)**
+**[src/screens/ChatsInOrder/ChatItem/index.tsx](https://github.com/lotatech/soft-homecare-app/pull/7/files#diff-04af58b6bb9b975b794a2848214291ddde5e83ad3827d107ead138790090e44fR143)**
 
 1. Тут тоже форматированние даты вынести в переменную на **143, 149** строке
 
@@ -35,6 +35,6 @@
 1. Не нужно оставлять закоменченный код
 2. Тут действительно `containerStyle={{backgroundColor: 'red'}}` просто красный нужен или ты просто делал для проверки и забыл убрать? 
 
-**src/components/WebViewWrapper/styles.ts(https://github.com/lotatech/soft-homecare-app/pull/7/files#diff-49f225b6482369e3cf0c596a5c47eed31417202015e2ede3cee94a2ab54f3407R26)**
+**[src/components/WebViewWrapper/styles.ts](https://github.com/lotatech/soft-homecare-app/pull/7/files#diff-49f225b6482369e3cf0c596a5c47eed31417202015e2ede3cee94a2ab54f3407R26)**
 
 1. Закоменченный код
