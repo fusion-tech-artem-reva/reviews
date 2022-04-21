@@ -1,51 +1,38 @@
-**PR10**
+**[src/hooks/useKitchens.ts](https://github.com/grubrunner/food-delivery-admin/pull/11/files#diff-b9ae885da8f2f86e4cf2a0777d1b530f26f33ae2ee7b8a483a97bf0be18ed3edR54)**
 
-**[src/Pages/Kitchens/Kitchens.hook.ts](https://github.com/grubrunner/food-delivery-admin/pull/10/files#diff-e63848ee51b28c8a8b9a06e23ab56eaad3f6cb21a04a223fc40c3a1efcd1f877R14)**
-
-1. Ты тут пишешь `string | null` но при этом начальное значение `undefined`
-```
-const [requestError, setRequestError] = useState<string | null>();
-```
-
-2. `newKitchen` создаешь с `id = 0`. Не может быть такого что ты можешь создать несколько `newKitchen` и у них будет у все `id=0` ?
+1. Если `kitchens` будет пустой массив ? Тогда у тебя упадет тут так ка к `kitchens[0]` будет `undefined` 
 
 ```
-const handleCreateKitchen = useCallback(async () => {
-    if (!pathRestaurantId || !kitchensResponse) return;
-    const newKitchen = {
-      id: 0,
-      name: `Kitchen ${kitchensResponse.length + 2}`,
-      isInOperation: false
-    };
+    if (kitchens && !selectedKitchenId) {
+      selectKitchen(kitchens[0].id);
+    }
+```
+
+**[src/hooks/useSections.ts](https://github.com/grubrunner/food-delivery-admin/pull/11/files#diff-c72a6a39c2792562569f2b7e56003020f1eefbc541ba6221750d044635f0d1b1R38)**
+
+1. Нет смысла в таких случаях делать проверку на `length` и возвращать `undefined` так как у тебя и так если не будет `data` то вернется  `undefined`
+
+```
+ const sections: ISection[] | undefined = useMemo(() => {
+    const adapteredSections = data?.data.map(adaptResponseSections);
+
+    return adapteredSections?.length ? adapteredSections : undefined;
+  }, [data?.data]);
+
+  можно же просто
+
+   const sections: ISection[] | undefined = useMemo(() => {
+    return data?.data.map(adaptResponseSections);
+  }, [data?.data]);
+
 ```
 
 
 
-**[src/Pages/Kitchens/Kitchens.tsx](https://github.com/grubrunner/food-delivery-admin/pull/10/files#diff-4e6611b453f1e6d2b2f83152801e9c6556b155a0d79b9a4c6356cd54e6d465a6R30)**
+**[src/hooks/useSectionsList.ts](src/hooks/useSectionsList.ts)**
 
-1. Это прям так и надо ?
-```
-<span>#</span>
-```
-
-2. По хорошему это у тебя должен быть отдельный компонент. Который ты уже будешь мапать
+1. Делай переносы 
 
 ```
-<div key={kitchen.id} className="Form-Row FormItem">
-    <span className="FormItem-Index">{idx + 1}</span>
-
-    <span className="FormItem-Name">{kitchen.name}</span>
-
-    <div className="FormItem-Row">
-      <Switch
-        isActive={kitchen.isInOperation}
-        onSelect={value => handleSwitch(kitchen.id, value)}
-      />
-
-      <div
-        className="FormItem-Delete"
-        onClick={() => handleDeleteKitchen(kitchen.id)}
-      />
-    </div>
-  </div>
+[lastSelected, sections, selectSection, setSections, selectedSections, getIsSelected]
 ```
