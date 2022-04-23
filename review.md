@@ -1,38 +1,44 @@
-**[src/hooks/useKitchens.ts](https://github.com/grubrunner/food-delivery-admin/pull/11/files#diff-b9ae885da8f2f86e4cf2a0777d1b530f26f33ae2ee7b8a483a97bf0be18ed3edR54)**
+**[src/Pages/SectionsServed/SectionsServed.hook.ts](https://github.com/grubrunner/food-delivery-admin/pull/12/files#diff-aa5a3e0382433b9951b5dc6f4cf4d8e49ef18678c5c38d2f305b06b74979c3a8R47)**
 
-1. Если `kitchens` будет пустой массив ? Тогда у тебя упадет тут так ка к `kitchens[0]` будет `undefined` 
+1. Удали закоменцечнный кодище
+2. `selectedServedSections` может быть пустым массивом так как проверка на пустой массив отсутствует и таким образом у тебя упадет 
 
 ```
-    if (kitchens && !selectedKitchenId) {
-      selectKitchen(kitchens[0].id);
+if (selectedServedSections[0].servedSectionId) {
+  const { error } = await deleteServedSection({
+    sectionId: selectedServedSections[0].servedSectionId
+  });
+```
+
+**[src/api/menu.ts](https://github.com/grubrunner/food-delivery-admin/pull/12/files#diff-f9c086eb515f3962057e8faf0de7cacb897c7fdefbe1aa3c37e95ba041b6c0c1R39)**
+
+1. Еще во всех апихах ты делаешь проверку на ошибку одинаковую. Вынеси это в отдельную функцию и используй её аля 
+
+```
+type ResponseError = {
+  error: string;
+}
+
+function getResponseError(error: any): ResponseError {
+  if (Axios.isAxiosError(error) && ( 
+    typeof error.response?.data.error === "string")
+  ) {
+      return { error: error.response.data.error };
     }
+
+    return { error: error.message };
+}
 ```
 
-**[src/hooks/useSections.ts](https://github.com/grubrunner/food-delivery-admin/pull/11/files#diff-c72a6a39c2792562569f2b7e56003020f1eefbc541ba6221750d044635f0d1b1R38)**
+**[src/hooks/useMenuItems.ts](https://github.com/grubrunner/food-delivery-admin/pull/12/files#diff-690aaf15695bdf1c45ec4ae6eaaf42f2f502b5e997d1e581c5df552616df2e97R44)**
 
-1. Нет смысла в таких случаях делать проверку на `length` и возвращать `undefined` так как у тебя и так если не будет `data` то вернется  `undefined`
+1. Тоже что и в 11 PR - нет смысла в таких случаях делать проверку на `length` и возвращать `undefined` так как у тебя и так если не будет `menuItems` то вернется  `undefined`
 
-```
- const sections: ISection[] | undefined = useMemo(() => {
-    const adapteredSections = data?.data.map(adaptResponseSections);
 
-    return adapteredSections?.length ? adapteredSections : undefined;
-  }, [data?.data]);
+**[src/hooks/useRestaurants.ts](https://github.com/grubrunner/food-delivery-admin/pull/12/files#diff-48e560777304eb08fe544864bff860764ed03f2bda776f70d6b2fc42d8ddcde6R73)**
 
-  можно же просто
-
-   const sections: ISection[] | undefined = useMemo(() => {
-    return data?.data.map(adaptResponseSections);
-  }, [data?.data]);
+1. `restaurants[0].id` может упасть так как нету проверки на длину массива
 
 ```
-
-
-
-**[src/hooks/useSectionsList.ts](src/hooks/useSectionsList.ts)**
-
-1. Делай переносы 
-
-```
-[lastSelected, sections, selectSection, setSections, selectedSections, getIsSelected]
+const selectRestaurantId = pathRestaurantId ?? restaurants[0].id;
 ```
