@@ -59,6 +59,8 @@ async function requestUserPermission() {
     }
   })
   }, [])
+
+
 ```
 
 
@@ -123,3 +125,78 @@ const coinName = useMemo(() => {
   const deleted = useAppSelector((store) => store.community.deleted);
   const postDetails = useAppSelector((store) => store.community.postDetails);
 ```
+
+
+**src/screens/market/components/coins/index.tsx**
+
+1. 25 строка `console.log('item', item);`
+
+
+**src/screens/postDetails/components/comment/hook.ts**
+
+1. 41 строка `console.log('KKKKKKKKKKKKK', comment);`
+
+**src/screens/postDetails/components/replyingComment/index.tsx**
+
+1. 18 - `console.log('parentComment', parentComment);`
+
+**src/screens/postDetails/index.tsx**
+
+1. `console.log('parentComment', parentComment);`
+
+2. Закоменченный код нужен?
+
+**src/navigation/tabNavigator/index.tsx**
+1. Закоменченный код ?
+
+**src/screens/searchCommunity/index.tsx**
+
+1. Что то пробелов многовато 
+
+```
+<KeyboardAvoidingView behavior={isIOS ? 'padding' : 'height'}           style={{flex: 1}}>
+```
+2. 
+
+```
+<Pressable
+    style={{flex: 1}}
+    onPress={() => { Keyboard.dismiss() }}>
+      <EmptyScreen text="no-results" />
+  </Pressable>
+
+
+  напиши без стрелочной функции
+  onPress={Keyboard.dismiss}>
+
+```
+
+**src/shared/postInfo/index.tsx**
+1. Вынеси стили из инлайновых
+
+```
+ <View style={{ alignContent: 'center', alignItems: 'center' }}>
+```
+
+2. Важно! Нету key
+
+```
+<View style={styles.postDetailIndicatorsContainer}>
+              {
+              indicators.map((_, index) => {
+                const selected = (index + 1) === currentIndex;
+                return (
+                  <View
+                  key <<< ОТСУТСТВУЕТ
+                    style={[
+                      styles.postDetailIndicator,
+                      selected && styles.postDetailActiveIndicator,
+                    ]}
+                  />
+                );
+```
+
+
+**src/store/community/index.ts**
+
+1. А тебе функция `initialState` не подходит разве для того чтобы обнулить стэйт в `resetCommunityStore`, а не для каждого полля писать? (так же и в других слайсах)
