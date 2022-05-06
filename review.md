@@ -1,203 +1,125 @@
+**[src/core/hooks/useMessaging.ts](https://gitlab.com/krypt_app/krypt_frontend/-/merge_requests/10/diffs#b7a57c3eb0469a253248210b11338716c8021eed_0_16)**
 
-
-**src/screens/chatList/hook.ts**
-
-1. Обсудить необходимость `useLayoutEffect`
+1. Слишком намешано в фукции `requestUserPermission`. Вроде про permissions а на деле там и токен полуить и канал созадть. Я бы предложить разбить. Это не требование изменить прям как я написал. Но желательно подумать на тем как можно разбить на логические части.
 
 ```
-useLayoutEffect(() => {
-    if (isFirstRender.current) {
-      loadedGetChats();
+async function requestUserPermission() {
+    try {
+      let authStatus = await messaging().requestPermission();
+      if (authStatus === messaging.AuthorizationStatus.NOT_DETERMINED) {
+        authStatus = await messaging().requestPermission();
+      }
+
+      const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED || (
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL);
+      return enabled;
+    } catch (ex) {
+      console.error('REQUEST USER PERMISSION ERROR:', ex);
     }
-  }, []);
+  }
+
+  const initializeDeviceToken = async () => {
+    try {     
+      const token =  await messaging().getToken();
+      saveTokenToAsyncStorage(token);
+
+      messaging().onTokenRefresh((token) => {
+          saveTokenToAsyncStorage(token);
+      });
+    } catch(err) {
+       console.error('REQUEST TOKEN ERROR:', ex);
+    }
+  }
+
+  const createNotificationChanel = () => {
+     PushNotification.createChannel(
+          {
+            channelId: 'krypt-channel',
+            channelName: 'My channel',
+            importance: Importance.HIGH,
+          },
+          (created) => {
+            console.log(`createChannel returned '${created}'`);
+          },
+        );
+  }
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      return;
+  (async () => {
+    try {
+      const isPermissionsGranted = await requestUserPermission();
+      await messaging().registerDeviceForRemoteMessages();
+
+      if (!isPermissionsGranted) return;
+      createNotificationChanel();
+      initializeDeviceToken()
+
+    } catch (err) {
+      ...
     }
-    loadedGetChats();
-  }, [unreadMessages]);
-
-  ...
-
-   useLayoutEffect(() => {
-    dispatch(getChatsThunk());
-  }, [ownGroups?.length, groups?.length]);
+  })
+  }, [])
 ```
 
 
-**src/screens/profile/components/posts/hook.ts**
+**[src/navigation/tabNavigator/index.tsx](https://gitlab.com/krypt_app/krypt_frontend/-/merge_requests/10/diffs#a98664edb721558b5d06a2963e03f9e3a87e3e32_13_37)**
 
-1. Не нужна деструктуризация
+1. По хорошему такое количество диспатчей объеденить в один если имееться возможность создать один который будет тригеррить эти 3 - 4 изменения (https://redux.js.org/style-guide/#avoid-dispatching-many-actions-sequentially)
 
-```
-const { userPosts } = useAppSelector((store) => store.community);
-```
+2. Похоче что ты забыла тут `return` перед `messaging().onMessage(onMessageReceived);`. 
 
-**src/screens/profile/hook.ts**
-
-1. Значения зависящие от `userProfile` я бы вынест в один `useMemo`:
-```
- let contentHeight = 427;
-  let snapValue = hp(427);
-
-  if (userProfile) {
-    snapValue = hp(97);
-    contentHeight = 97;
-  }
-
-  let title = 'my-profile';
-  let headerOnPress;
-
-  if (userProfile) {
-    title = 'back';
-    headerOnPress = goBack;
-  }
-
-  Вместо этого получаем:
-
-  const {
-    contentHeight,
-    snapValue,
-    title,
-    headerOnPress
-  } = useMemo(() => {
-    return {
-      contentHeight: userProfile ? 97 : 427,
-      snapValue: userProfile ? hp(97) : hp(427),
-      title: userProfile ? 'back' : 'my-profile,
-      headerOnPress: userProfile ? goBack : undefined
-    }
-  }, [userProfile])
+А вообще мне не понятно для чего тебе тут IIFE ([Immediately Invoked Function Expression](https://developer.mozilla.org/ru/docs/Glossary/IIFE)). Что мешает тебе просто написать
 
 ```
-
-
-**src/screens/uploadPostFile/hook.ts**
-
-1. Чем обоснованно то что тебе нужен `useLayoutEffect` тут ? 
-```
-useLayoutEffect(() => {
-    (async () => {
-      const isPermission = await getLibraryPhotos();
-      if (isPermission) {
-        dispatch(getLibraryPhotosThunk());
-      }
+useEffect(() => {
+    const unsubscribe = (() => {
+      messaging().onMessage(onMessageReceived);
     })();
+
+    return unsubscribe;
   }, []);
-```
-2. А что с типом ? 
-```
-const positionRef = useRef<any | undefined>(undefined);
-```
 
-3. А что такое 367 ?
-```
- const dX = 367 / image.width;
-const dY = 367 / image.height;
-```
+  Что мешает тебе просто написать
 
-**src/screens/uploadPostFile/index.tsx**
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(onMessageReceived);
 
-1. Перенос строк
-```
- {img.map((item) => (
-  <ImageBackground style={styles.previewImageContainer} source={{ uri: item }} resizeMode="contain" />
-```
-
-____
-**Убери логи в этих файлах**:
-- src/store/chats/index.ts
-- src/store/user/index.ts
-- src/store/community/index.ts
-
-**src/core/hooks/useTabBar.ts**
-
-1. Тут точно нужен `await` в `showTabBarFunc` и `hideTabBarFunc` ?
+    return unsubscribe;
+  }, []);
+  ```
 
 
-**src/screens/changePhone/components/select/hook.ts**
-1. Не страшно, но типизация тут не нужна. У тебя уже селектор типизирован
-```
-const { countries, country } = useAppSelector((store: IStore) => store.countries);
-```
+**[src/screens/chat/components/header/hook.ts](https://gitlab.com/krypt_app/krypt_frontend/-/merge_requests/10/diffs#f1a974af2679b5d7755141bcbb36c154ab1af064_22_37)**
+
+1. Пофикси название `handleSetChannelChannelCount` chanelchanel
 
 
-**src/screens/changePhone/components/selectList/index.tsx**
-1. Переносы
-```
-<SearchInput type="small" value={search} onChangeText={handleChangeSearch} placeholder="Search country..." />
-```
+**[src/screens/group/components/socials/index.tsx](https://gitlab.com/krypt_app/krypt_frontend/-/merge_requests/10/diffs#86b802a2de7b68cf07ad4c7160ee9181243dfa82_20_19)**
 
 
-**src/screens/changePhone/hook.ts**
-1. Уже где то такое было. Но при таком условии `0` не будет учитываться
-```
- if (idx && idx >= 0 && dialCode) 
-```
+1. Возможно ты ошиблась `handlePressSocial(name, name)` ? не `name` и `name` в аргументах должно быть  а `url` и `name`. А может и нет но тогда как то странно зачем одно и тоже прокидывать
 
-**src/screens/changePhonePreview/hook.ts**
-1. Убери деструктуризацию
-```
- const { user } = useAppSelector((store) => store.user);
-```
 
-**src/screens/changePhonePreview/index.tsx**
-1. Добавь переносы
-```
- <Typography styles={[appStyles.regularText, styles.title]} text="change-number" />
-<Text style={[appStyles.regularText, styles.phone]}>
-  {phone}
-</Text>
-<Typography styles={[appStyles.normalText, styles.description]} text="change-number-description" />
-<LinearGradient
+**[src/screens/liveChart/hook.ts](https://gitlab.com/krypt_app/krypt_frontend/-/merge_requests/10/diffs#deee9a00c4d88a07a244860a72a1b31ae91a6d8b_0_23)**
+
+1. Засунь это в `useMemo` 
 
 ```
-
-
-**src/screens/chat/components/message/index.tsx**
-1. Нужен ли закоменченный код
-
-```
- <Pressable onPress={() => { goToUserProfile(author?.id); }}>
-  <NoAvatar author={author} />
-  {/* {author?.avatarUrl
-    ? <FastImage source={{ uri: `${API.URL}${author?.avatarUrl}` }} />
-    : <NoAvatar author={author} />} */}
-</Pressable>
+const coinName = useMemo(() => {
+  const coin = coins.find((item) => item.apiCode === apiCode);
+  return coin?.name.toLowerCase().replace(' ', '-');
+}, [coin, apiCode])
 ```
 
-**src/screens/chat/hook.ts**
-1. Это зачем так? Это я тебя сбил с толку чтобы ты не использовала деструкутуризацию ?
+**src/screens/postDetails/hook.ts**
 
-В этом случае деструктуризацию можно использовать так как ты все тянешь из одного стора `chats`
-```
- const chatId = useAppSelector((store) => store.chats.chatId);
-  const messageId = useAppSelector((store) => store.chats.messageId);
-  const messages = useAppSelector((store) => store.chats.messages);
-  const editVisibility = useAppSelector((store) => store.chats.editVisibility);
-  const chatName = useAppSelector((store) => store.chats.chatName);
-  const groupId = useAppSelector((store) => store.chats.groupId);
-  const unreadChatMessages = useAppSelector((store) => store.chats.unreadChatMessages);
-  const isLoading = useAppSelector((store) => store.chats.isLoading);
-  const channelIsLoading = useAppSelector((store) => store.chats.channelIsLoading);
-  const messageIsLoading = useAppSelector((store) => store.chats.messageIsLoading);
+1. Тут опять миссандерстэндинг. Если вытаскиваешь из одно участка стора данные и тянешь большу их часть можно не разбивать на кучу селекторов.
 
 ```
-
-а лучше было бы сделать иначе. Так и глазу приятно и ну путаешься. А то слишком много полей для деструктуризации
-```
-const chatStore = useAppSelector((store) => store.chats);
-...
-остальной код
-
-return {
-    handleChangeChannelVisibility,
-    channelVisibility,
-    hideChannel,
-    messages: chatStore.messages,
-    chatName: chatStore.chatName,
-    ...
-}
-
+  const parentComment = useAppSelector((store) => store.community.parentComment);
+  const postId = useAppSelector((store) => store.community.postId);
+  const isLoading = useAppSelector((store) => store.community.isLoading);
+  const visibilityBottomSheet = useAppSelector((store) => store.community.visibilityBottomSheet);
+  const deleted = useAppSelector((store) => store.community.deleted);
+  const postDetails = useAppSelector((store) => store.community.postDetails);
 ```
