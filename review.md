@@ -9,7 +9,7 @@
 ```
 и так далее.
 
-2. Перепиши стили используя модули [(тут ссылка)]("https://create-react-app.dev/docs/adding-a-css-modules-stylesheet/") для начала вместо css
+2. Перепиши для начала вместо css стили используя модули [ссылка]("https://create-react-app.dev/docs/adding-a-css-modules-stylesheet/") 
 
 
 
