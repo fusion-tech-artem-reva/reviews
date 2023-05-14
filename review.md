@@ -1,415 +1,96 @@
-**Общее замечание**
-Мой косяк. Но только заметил что ты называешь файлы с компонентами с маленькой буквы. Компоненты и файлы компонентов носят одно и то же названия и должны начинаться с заглавной. 
-
-![image info](./img.png)
-
-**src/core/helpers/assembleDateString.ts**
-
-1. `assembleTimeString` в функции вынеси `new Date(date)` в переменную, чтобы обозначить ее один раз а не 3 раза делать одно и тоже. 
-```
-  if (relativeDate.includes('today')) return format(new Date(date), MESSAGE_TIME_FORMAT);
-
-  очень длино и как то не по христьянски. Сделай как обыно и красиво
-    if (relativeDate.includes('today')) { 
-    return format(new Date(date), MESSAGE_TIME_FORMAT);
-    }
+1. Компоненты перенести как минимум в папку `components` для начала. Сейчас у тебя все в одном месте перемешанно. Для каждого компонента создай свою папку в:
 
 ```
- 2. Тоже само про new `Date(date)` и в других функциях ниже.
-
-
-____
-
-**src/core/helpers/validation.ts**
-
-1.   
+ src:
+	- components:
+		  - Header:
+			  -Header.jsx
+			  -Header.styles.css
 ```
-export const validateInfoGroup = (value: string) => {
-  if (!value.trim()) return false;
-  return true;
-};
+и так далее.
+
+2. Перепиши стили используя модули [(тут ссылка)]("https://create-react-app.dev/docs/adding-a-css-modules-stylesheet/") для начала вместо css
+
+
+
+**[MainTodo](https://github.com/krok-86/REDUX-TODO/blob/main/src/MainToDo.jsx)**
+
+1. `const [todoDone, setTodoDone] = useState(0);` не нужный стейт
+ты его устанавливаешь каждый раз когда меняеться `todo`
 ```
-замени на 
-```
-export const validateInfoGroup = (value: string) => !!value.trim()
-```
-____
-**src/core/hooks/useChat.ts**
-
-1. Зачем создаеешь соединение `socket` и потом дальше нигде не используешь `7` сторка ? 
-
-2. `getUnreadMessagesCount` и `getUnreadChatMessagesCount` у `data` тип `any` ?
-____
-**src/core/hooks/useTabBar.ts**
-
-1. 
-
-```
-const tabBarVisibility = useSelector((state: RootState) => state.app.tabBarVisibility);
-```
-
-у тебя же есть `useAppSelector` который уже типизирован. Используй его
-
-2. Зачем у тебя функции `showTabBarFunc` и `hideTabBarFunc` асинхронные при этом у тебя не выполняеться ничего асинхронного. И еще ты используешь `try catch` только он ничего не отловит.
-
-Если хочешь дожидаться и если у тебя `dispatch` асинхронный тогда пиши 
-```
-await dispatch(showTabBar());
-```
-в противном случае ожидаемый эффект ты не получишь
-
-____
-
-**src/core/utils/api/adapter.ts**
-1. 
-Зачем ?
-```
-axios.interceptors.request.use((config) => {
-  return config;
-})
-```
-____
-
-
-**src/navigation/index.tsx**
-Что то не понятно зачем тебе тут `isLoading` если ты не дожидаясь впринципе ничего сразу в `useEffect` сетишь `setLoading(false);` а потом уже подгруаешь юзера и его сообщения
-
-```
- const [isLoading, setLoading] = useState<boolean>(true);
-  const { user } = useAppSelector((store) => store.user);
-
   useEffect(() => {
-    (async () => {
-      const authToken = await Storage.authToken.get();
+    countTaskDone();
+  }, [todo]);
+```
+в этом нет никакого смысла так как `todo` это тоже стейт при изменении которого будет вызван ререндер. Так зачем нам тогда еще один стейт если ты можешь просто взять и присвоить значение выполненных в переменную и она будем меняться всегда так как зависит от стейта
 
-      if (authToken === token) return;
+```
+const doneTodos = todo.filter((item) => item.status).length;
+```
 
-      setLoading(false);
-      if (authToken) {
-        dispatch(getUserThunk());
-        dispatch(getUnreadMessagesCountThunk());
-        socket.connect(authToken);
+и никакой дополнительный стейт для этого не нужнен
+
+
+2. 
+- как бы вроде бы ок тут. Но ты мутируешь оригинальный стейт ` item.title = title;` вот этим действием. Ты внутри массива напрямую обращаешься к оригинальному объекту и в оригинальном объетке меняешь `title`. Так делать нельзя. 
+
+```
+const editTodo = (id, title) => {
+    const newTodo = todo.map((item) => {
+      if (item.id === id) {
+        item.title = title;
       }
-      setToken(authToken);
-    })();
-  }, [user]);
-```
-
-____
-**src/screens/addTextPost/components/accounts/account.tsx**
-
-1. Изспользуй для таких вычисленией `useMemo`
-```
-const selected = index === 0 ? isPostForYou : !!groupsIds.find((item) => item === id);
-```
-
-2. Вынеси цвета в `constants`. Что то мне подсказывает что ты их используешь не только тут
-```
- <Switch
-    trackColor={{ false: "#707482", true: "#1c5b96" }}
-    thumbColor={selected ? "#2C98F0" : "#FAFAFA"}
-    ios_backgroundColor="#707482"
-    onValueChange={() => selectAccount(id, index)}
-    value={selected}
-  />
-```
-
-
-**src/screens/addTextPost/components/accounts/hook.ts**
-
-1. В таких случаях лучше обойтись без деструктуризации дабы избежять лишних ререндеров
-
-```
-const { ownGroups } = useAppSelector((store) => store.groups);
-const { user } = useAppSelector((store) => store.user);
-```
-
-лучше будет так:
-
-```
-const ownGroups = useAppSelector((store) => store.groups.ownGroups);
-const user  = useAppSelector((store) => store.user.user);
-```
-
-тогда мы можем быть точно уверенны что эти переменные будут изменны только в случае когда они реально поменяются. А в первом случае они менялись при любом изменении поля в `store.user` или `store.groups`
-
-
-2. Заверни в `useMemo`
-
-```
-const myGroups = ownGroups?.map((group) => ({
-    id: group.id,
-    avatarUrl: group.avatarUrl,
-    name: group.name,
-  }));
-  
-  const accounts = myGroups?.length ? [{
-    id: user.id,
-    avatarUrl: user.avatarUrl,
-    name: user.nickname,
-  }, ...myGroups] : [{
-    id: user?.id,
-    avatarUrl: user.avatarUrl,
-    name: user.nickname,
-  },];
-
-
-  Будет :
-
-
-  const accounts = useMemo(() => {
-    const myGroups = ownGroups?.map((group) => ({
-    id: group.id,
-    avatarUrl: group.avatarUrl,
-    name: group.name,
-  })) ?? [];
-
-  return accounts = [{
-    id: user.id,
-    avatarUrl: user.avatarUrl,
-    name: user.nickname,
-  }, ...myGroups];
-
-  }, [ownGroups, user])
-
-```
-
-3. А тут хоршо подойдет `useCallback`
-
-```
-const selectAccount = (id: number, index: number) => {
-    if (index === 0) {
-      dispatch(setIsPostForYou());
-    } else {
-      dispatch(changeGroupIds(id));
-    }
-
+      return item;
+    });
+    setTodo(newTodo);
   };
 ```
 
-____
-**src/screens/addTextPost/components/accounts/index.tsx**
+- что такое `setTodo` в функции `editTodo`. Откуда он береться? 
+- так как у тебя есть редакс то все подобные изменения/вычисления для стейта переноси в `slice`. А в компоненте ты будешь просто вызывать `action` в который передашь например только `id, title`
 
-1. У `renderItem` для `flatList` есть специальный тип:
-
-```
-const renderItem: ListRenderItem<IAccount> = ...
-```
-
-**src/screens/addTextPost/components/previewPhoto/hook.ts**
-1. Если у тебя функции не зависят от внешних переменных а опираются только на аргументы функции старайся упаковывать их в `useCallback`:
+3. Сейчас у тебя `key={uuidv4()}` при каждом ререндере новый так как ты вызываешь `uuidv4()` каждый раз как массив меняеться и вся реактовская оптимизация летит на дно. У тебя должен быть статический уникальный id. 
+То есть в твоем случае это наверное должно быть как `key={item.id}`
 
 ```
-const handleChangeText = (value: string) => {
-    dispatch(setPostDescription(value));
+{todo.map((item) => (
+          <TaskString todo={item} editTodo={editTodo} key={uuidv4()} />
+        ))}
+```
+
+4. TaskString - не особо подходящее название для компонента. Непонятно за что он отвечает по название. Если бы хотябы это был TaskListItem было бы интереснее
+
+
+**[TaskString](https://github.com/krok-86/REDUX-TODO/blob/main/src/TaskString.jsx)**
+
+1. Не нужный стейт ` const [taskColor, setTaskColor] = useState(todo.status);
+`
+
+У тебя и так есть значение `todo.status` на него и опирайся
+
+
+2. Старайся условия писать от меньшено к большему всегда. Сначала пишешь условие которое тебя не удовлетворяет и выходишь а потом уже делаешь операции без условий. Например в твоем случае
+
+```
+ const handleEnter = (e) => {
+    if (e.key == "Enter") {
+      correctTodo();
+    }
   };
 ```
 
-И далее по коду везде =).
-
-____
-
-**src/screens/addTextPost/index.tsx**
-
-вынеси в переменную 
-```
-!!(groupsIds.length || isPostForYou) && !!description && 
-```
-
-____
-
-**src/screens/auth/components/selectList/index.tsx**
-Перенос строк
-```
-<SearchInput type="small" value={search} onChangeText={handleChangeSearch} placeholder="Search country..." />
-```
-
-____
-
-**src/screens/auth/hook.ts**
-
-Это условие не выполнится для `0` . Так как `0 == false в if`  таким образом у тебя получается  `if (false && 0 >= 0 && 'someDigitalcode') `
-```
- if (idx && idx >= 0 && dialCode)
-```
-
-____
-**src/screens/auth/index.tsx**
-порешай в этом файле перенос строк
-
-
-____
-**src/screens/chat/components/channels/hook.ts**
-1. убери деструктуризацию 
-```
-const { channels } = useAppSelector((store) => store.chats);
-```
-
-2. `handlePressChannel` заверни в `useCallback`
-
-____
-
-**src/screens/chat/components/channels/index.tsx**
-
-1. Цвета вынеси в константы
+==
 
 ```
- <LinearGradient colors={['#0E354C', '#191F35']} style={styles.container}>
-```
-
-____
-**src/screens/chat/components/editingMessage/hook.ts**
-1. убери деструктуризацию 
-```
-const { editingMessage } = useAppSelector((store) => store.chats);
-```
-
-2. `hideEditField` заверни в `useCallback`
-
-____
-**src/screens/chat/components/header/hook.ts**
-1. убери деструктуризацию 
-```
-const { chatId } = useAppSelector((store) => store.chats);
-```
-
-____
-**src/screens/chat/components/header/index.tsx**
-Разберись тут с переносом строк
-
-____
-
-**src/screens/chat/components/messages/hook.ts**
-1. убери деструктуризацию 
-```
-const { messages } = useAppSelector((store) => store.chats);
-```
-
-2. `getMessages` заверни в `useCallback`
-
-____
-**src/screens/chat/components/messages/index.tsx**
-1. Добавь типизацию для `renderItem`
-2. Цвета отправить в константы
-```
-<LinearGradient
-    pointerEvents="none"
-    colors={['#00D9FF', '#18223D10']}
-    style={styles.overlay}
-  />
-```
-
-____
-**src/screens/chat/components/noAvatar/hook.ts**
-
-Заверни вычисление в `useMemo`
-```
-const chat = chats.find((item) => item.id === chatId);
-const isGroupChat = chat ? !!chat.groupId : false;
-```
-
-____
-
-**src/screens/chat/components/noAvatar/index.tsx**
-Цвета вынеси в константы
-
-```
-colors={['#0084FE', '#4FD4FE']} 
-```
-
-
-____
-**src/screens/chat/hook.ts**
-
-1. Убери деструктуризацию 
-```
- const { modalVisibility } = useAppSelector((store) => store.app);
-```
-2. Много что можно упаковать в `useCallback`
-
-
-____
-**src/screens/chatList/components/chatItem/hook.ts**
-1. Почему `any` ?
-```
-swipeable: any;
-```
-
-2. Убери деструктуризацию 
-```
-const { chatId } = useAppSelector((store) => store.chats);
-const { user } = useAppSelector((store) => store.user);
-```
-
-____
-**src/screens/chatList/hook.ts**
-
-1. Убери деструктуризацию 
-```
- const { modalVisibility } = useAppSelector((store) => store.app);
-```
-2. Много что можно упаковать в `useCallback`
-
-____
-**src/screens/chatList/index.tsx**
-
-1. Типизация для `renderItem`
-____
-
-**Добавленно новое ниже**
-
-**src/screens/community/components/feedItem/hook.ts**
-
-1. Нужно обсудить `handleLikePost` а именно два диспатча и зачем он тут вообще этот метод. 
-2. А так же `setLike/setLikePostThunk` в самом `reducer` 
-
-____
-
-**src/screens/community/components/feeds/hook.ts**
-1. Убери деструктуризацию 
-```
- const { feeds } = useAppSelector((store) => store.community);
-```
-
-___
-**src/screens/community/components/header/index.tsx**
-
-1. У тебя разметка практически одна и таже что для `isEmpty` что нет. Лучше сделай одну разметку а уже пару деталей добавляй или уберай по условию `isEmpty`. Там будет добавляться один класс и `popUpContent` контейнер для `isEmpty
-` 
-
-____
-
-**src/screens/community/hook.ts**
-
-1. Убери деструктуризацию 
-```
- const { feeds } = useAppSelector((store) => store.community);
-
-```
-
-2. Если больше зависемостей не предвидется то можно засунуть и в один `useEffect`
-
-```
-useEffect(() => {
-    dispatch(setUploaded());
-  }, []);
-
-  useLayoutEffect(() => {
-    dispatch(getFeedThunk());
-  }, []);
-
-```
-
-3. Не нужна зависимость `feeds.length` так как ты и так туда положила `feeds` 
-```
- useEffect(() => {
-    if (feeds?.length) {
-      hideEmptyModal();
+ const handleEnter = (e) => {
+    if (e.key !== "Enter") {
+     return
     }
-  }, [feeds, feeds.length]);
+    correctTodo();
+  };
 ```
 
-____
+Пересмотри все у себя и переделай. Особенно посмотри в Bottom.jsx. 
 
 **src/screens/community/index.tsx**
 
