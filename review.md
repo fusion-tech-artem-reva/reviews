@@ -476,7 +476,7 @@ ____
 ```
  const { group } = useAppSelector((store) => store.groups);
 ```
-
+12
 ___
 
 **src/screens/group/hook.ts**
