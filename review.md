@@ -1,257 +1,793 @@
-1. Компоненты перенести как минимум в папку `components` для начала. Сейчас у тебя все в одном месте перемешанно. Для каждого компонента создай свою папку в:
+## 1. General stop page updates:
 
-```
- src:
-	- components:
-		  - Header:
-			  -Header.jsx
-			  -Header.styles.css
-```
-и так далее.
+- now we have 3 types of time tables:
 
-2. Перепиши для начала вместо css стили используя модули [ссылка](https://create-react-app.dev/docs/adding-a-css-modules-stylesheet/) 
+  - time table groupped by transport types
+    screenshots:
+  - time table for respective transport type and groupped by lines
+    screenshots:
+  - time table for respective transport type and line
+    screenshots:
 
+- also stop pages can be by single or by sub-stop.
+  - stop page by stop - `/haltestelle/deutschland/berlin/berlin/berlin-hauptbahnhof` and otheres from stop:
+    - `/haltestelle/deutschland/berlin/berlin/berlin-hauptbahnhof/sbahn`
+    - `/haltestelle/deutschland/berlin/berlin/berlin-hauptbahnhof/sbahn/s7`
+  - stop page by sub-stop - `/haltestelle/deutschland/berlin/berlin/berlin-hauptbahnhof/sub/berlin-hbf-nord` and others from sub stop:
+    - `/haltestelle/deutschland/berlin/berlin/berlin-hauptbahnhof/sub/berlin-hbf-nord/sbahn`
+    - `/haltestelle/deutschland/berlin/berlin/berlin-hauptbahnhof/sub/berlin-hbf-nord/sbahn/s7`
 
+---
 
-**[MainTodo](https://github.com/krok-86/REDUX-TODO/blob/main/src/MainToDo.jsx)**
+## 2. Updated model for `transport_info`:
 
-1. `const [todoDone, setTodoDone] = useState(0);` не нужный стейт
-ты его устанавливаешь каждый раз когда меняеться `todo`
-```
-  useEffect(() => {
-    countTaskDone();
-  }, [todo]);
-```
-в этом нет никакого смысла так как `todo` это тоже стейт при изменении которого будет вызван ререндер. Так зачем нам тогда еще один стейт если ты можешь просто взять и присвоить значение выполненных в переменную и она будем меняться всегда так как зависит от стейта
-
-```
-const doneTodos = todo.filter((item) => item.status).length;
-```
-
-и никакой дополнительный стейт для этого не нужнен
-
-
-2. 
-- как бы вроде бы ок тут. Но ты мутируешь оригинальный стейт ` item.title = title;` вот этим действием. Ты внутри массива напрямую обращаешься к оригинальному объекту и в оригинальном объетке меняешь `title`. Так делать нельзя. 
-
-```
-const editTodo = (id, title) => {
-    const newTodo = todo.map((item) => {
-      if (item.id === id) {
-        item.title = title;
-      }
-      return item;
-    });
-    setTodo(newTodo);
-  };
+```ts
+interface TransportInfo {
+  line?: string;
+  transport: TransportsTypes;
+  scheme?: string;
+  color?: string;
+  text_color?: string;
+  short_line?: string;
+  // NEW fields
+  relation?: string;
+  group_transport_type?: TransportsTypes;
+}
 ```
 
-- что такое `setTodo` в функции `editTodo`. Откуда он береться? 
-- так как у тебя есть редакс то все подобные изменения/вычисления для стейта переноси в `slice`. А в компоненте ты будешь просто вызывать `action` в который передашь например только `id, title`
+- `group_transport_type` - is for `Fern- & Regio` type. Which includes different transports like `re, ice, flixtrain ...`, Boris know which one should be included.
+- `relation` - is for generating `generic` line page. It's can be `scheme`, `group_transport_type`, `city` etc. Boris work on it.
 
-3. Сейчас у тебя `key={uuidv4()}` при каждом ререндере новый так как ты вызываешь `uuidv4()` каждый раз как массив меняеться и вся реактовская оптимизация летит на дно. У тебя должен быть статический уникальный id. 
-То есть в твоем случае это наверное должно быть как `key={item.id}`
+for example if it is `Group type`:
+colors are real, For flix use second color combination for all others groupped items 1 combination;
 
-```
-{todo.map((item) => (
-          <TaskString todo={item} editTodo={editTodo} key={uuidv4()} />
-        ))}
-```
+```js
+const transport_type = {
+  line: 'ICE',
+  transport: 'ice',
+  color: '#0454A3',
+  text_color: '#ffffff',
 
-4. TaskString - не особо подходящее название для компонента. Непонятно за что он отвечает по название. Если бы хотябы это был TaskListItem было бы интереснее
-
-
-**[TaskString](https://github.com/krok-86/REDUX-TODO/blob/main/src/TaskString.jsx)**
-
-1. Не нужный стейт ` const [taskColor, setTaskColor] = useState(todo.status);
-`
-
-У тебя и так есть значение `todo.status` на него и опирайся
-
-
-2. Старайся условия писать от меньшено к большему всегда. Сначала пишешь условие которое тебя не удовлетворяет и выходишь а потом уже делаешь операции без условий. Например в твоем случае
-
-```
- const handleEnter = (e) => {
-    if (e.key == "Enter") {
-      correctTodo();
-    }
-  };
-```
-
-==
-
-```
- const handleEnter = (e) => {
-    if (e.key !== "Enter") {
-     return
-    }
-    correctTodo();
-  };
-```
-
-Пересмотри все у себя и переделай. Особенно посмотри в Bottom.jsx. 
-
-**src/screens/community/index.tsx**
-
-1. Обсудить как работает этот компонент. А именно ты при `isEmpty` отрисовываешь один layout но тот же можешь поменять `hideEmptyModal` и тем самым отрисовать другой. (это все напоминание для меня). 
-
-Если при `isEmpty` просто отображается какаято модалка с оповещением тогда все ок
-
-____
-**src/screens/creatingGroup/components/form/hook.ts**
-
-1. Так как это один и тот же обработчик то можно просто сделать его общим. И вместо нескольких иметь один
-
-```
-type Options = {
-  key: 'name' | 'description';
-  value: string;
+  relation: 'regional_long-distance' // Boris think about short name for this type,
+  group_transport_type: 'regional_long-distance'
 }
 
-const updateGroupInfoByKey = useCallback((options: Options) => {
-  dispatch(setGroupInfo(options));
-}, [])
+const transport_type2 = {
+  line: 'FLX',
+  transport: 'flixtrain',
+  color: '#73D700',
+  text_color: '#ffffff',
+
+  relation: 'regional_long-distance' // Boris think about short name for this type,
+  group_transport_type: 'regional_long-distance'
+}
 ```
 
-____
+---
 
-**src/screens/creatingGroup/components/uploadingImage/index.tsx**
+## 3. Updates in `/api/haltestelle/info`:
 
-1. Цвета вынести в константы `'#00C8FE', '#4FACFE'`
+#### Request params:
 
+```ts
+type StopInfoFetchParams = {
+  name: string;
+  city: string;
+  state: string;
+  country: string;
 
-____
-
-**src/screens/group/components/coinData/hook.ts**
-
-1. Убрать деструктуризацию
-
-```
- const { group } = useAppSelector((store) => store.groups);
-```
-
-____
-
-**src/screens/group/components/headerInfo/hook.ts**
-
-1. Убрать деструктуризацию
-
-```
- const { group } = useAppSelector((store) => store.groups);
-```
-____
-
-**src/screens/group/components/roadMap/hook.ts**
-
-1. Убрать деструктуризацию
-
-```
- const { group } = useAppSelector((store) => store.groups);
-```
-____
-**src/screens/group/components/socials/hook.ts**
-
-1. Убрать деструктуризацию
-
-```
- const { group } = useAppSelector((store) => store.groups);
-```
-12
-___
-
-**src/screens/group/hook.ts**
-
-1. `headerProps` заверни в `useMemo`
-2. Убери деструктуризацию 
-```
-const { modalVisibility } = useAppSelector((store) => store.app);
+  primary_stop_title?: string;
+  transport_type?: string;
+  line?: string;
+};
 ```
 
-3. Как то ты выборочно решаешь что завернуть в `useCallback` а что нет. В данном случае все обработчики можно завернуть.
+#### response additional fields:
 
+```ts
+interface StopInfoResponse extends PreviosStopInfoResponse {
+  current_transport_info?: TransportInfo;
+  available_direction_filter?: { direction: string }[];
+  available_transports_filter?: TransportInfo[];
 
-___
-**src/screens/group/index.tsx**
-
-1. Это задел на будущее или что ? в `BottomSheetButton`
-
-```
- onPress={() => {}}
-```
-
-___
-
-**src/screens/groups/components/emptyGroups/index.tsx**
-
-1. Отфарматируй файл (перенос строк)
-
-___
-**src/screens/groups/components/header/index.tsx**
-
-1. Отфарматируй файл (перенос строк)
-
-___
-
-**src/screens/groups/components/item/index.tsx**
-
-1. Отфарматируй файл (перенос строк)
-
-___
-
-**src/screens/roadMap/components/roadMapItem/index.tsx**
-
-1. Цвета в константы `'#00C8FE', '#4FACFE'`
-2. Вынеси в обработчик. Не надо все группировать прямо в разметке
-```
- onChangeText={(text) => {
-    setError('');
-    handleChangeRoadMapValue(text);
-  }}
+  primary_stop_short_title?: string;
+  primary_stop_title?: string;
+}
 ```
 
-___
+**Based on incoming `StopInfoFetchParams` to BE responses can vary:**
 
-**src/screens/roadMap/index.tsx**
+- `primary_stop_short_title`, `primary_stop_title` - are for the requests with `primary_stop_title` parameter.
+- `current_transport_info` - availalbe for the requsts `transport_type` or `transport_type & line` exists;
+  if only transport type exists
+- `available_transports_filter`- can be availalbe for all requests;
+- `available_direction_filter` - availalbe for the requsts with `line`
 
-1. Цвета вынеси в костанты `'#00C8FE', '#4FACFE'`.
+**Examples:**
 
-___
-**src/screens/uploadPostFile/components/checkbox/hook.ts**
+1.
 
-1. Убери деструктуризацию 
+- request:
+
+```js
+  name: 'berlin-hauptbahnhof',
+  city: 'berlin',
+  state: 'berlin',
+  country: 'deutschland',
 ```
-const { selectedPostImages } = useAppSelector((store) => store.community);
+
+- response:
+  No need anything in `available_transports_filter` only `transport`
+
+```js
+const response: {
+  ...rest_untouched_fields,
+  stop_name: 'Berlin Hauptbahnhof',
+  available_transports_filter: [
+  {
+    transport: 'regional_long-distance',
+  },
+  {
+    transport: 'sbahn'
+  },
+  {
+    transport: 'ubahn'
+  }
+  ];
+}
+```
+
+2.
+
+- request:
+
+```js
+  name: 'berlin-hauptbahnhof',
+  city: 'berlin',
+  state: 'berlin',
+  country: 'deutschland',
+  transport_type: 'sbahn' <<<
+```
+
+- response:
+
+```js
+const response: {
+  ...rest_untouched_fields,
+  current_transport_info: {
+    transport: 'sbahn'
+  },
+  available_transports_filter: [
+  {
+    transport: 'sbahn',
+    line: 'S7',
+    scheme: 'MVV',
+    color: '....',
+    text_color: '...'
+  },
+  {
+   transport: 'sbahn',
+    line: 'S5',
+    scheme: 'MVV',
+    color: '....',
+    text_color: '...'
+  },
+  {
+   transport: 'sbahn',
+    line: 'S2',
+    scheme: 'MVV',
+    color: '....',
+    text_color: '...'
+  }
+  ];
+}
+```
+
+3.
+
+- request:
+
+```js
+  name: 'berlin-hauptbahnhof',
+  city: 'berlin',
+  state: 'berlin',
+  country: 'deutschland',
+  transport_type: 'sbahn', <<<
+  line: 's7', <<<
+```
+
+- response:
+
+```js
+const response: {
+  ...rest_untouched_fields,
+    current_transport_info: {
+      transport: 'sbahn',
+      line: 'S7',
+      scheme: 'MVV',
+      color: '....',
+      text_color: '...'
+  },
+
+  available_transports_filter: [ // << can be ommitted for current response type (optional)
+  {
+    transport: 'sbahn',
+    line: 'S7',
+    scheme: 'MVV',
+    color: '....',
+    text_color: '...'
+  },
+  ],
+  available_direction_filter: [{ direction: 'Mangfallplatz' }, { direction: 'Olympia Einkaufszentrum' }]
+}
+```
+
+4. For Sub-Stops the same flow as above but only
+
+- request contains `primary_stop_title`:
+
+```js
+  name: 'berlin-hbf-nord',
+  city: 'berlin',
+  state: 'berlin',
+  country: 'deutschland',
+  primary_stop_title: 'berlin-hauptbahnhof', <<<
+  transport_type: 'sbahn',
+  line: 's7',
+```
+
+- and response containse `primary_stop_short_title` and `primary_stop_title`
+
+```js
+const response: {
+  ...rest_untouched_fields,
+  stop_name: "Berlin Hbf (Nord)",
+  short_title: "Berlin Hbf (Nord)",
+
+  primary_stop_short_title: "Berlin Hauptbahnhof",
+  primary_stop_title: "Berlin Hauptbahnhof",
+
+  available_transports_filter: [
+  {
+    transport: 'sbahn',
+    line: 'S7',
+    scheme: 'MVV',
+    color: '....',
+    text_color: '...'
+  },
+  ],
+  available_direction_filter: [{ direction: 'Mangfallplatz' }, { direction: 'Olympia Einkaufszentrum' }]
+}
+```
+
+---
+
+## 4. New timetable API (we call it stations api);
+
+- Timetable request params
+
+```ts
+//Timetable request params:
+interface StationTableFetchParams {
+  name: string;
+  city: string;
+  state: string;
+  country: string;
+
+  primary_stop_title?: string;
+  transport_type?: string;
+  line?: string;
+
+  date?: string;
+  time?: string;
+  type: string; // 'now' | 'departure' | 'arrival' | 'last'
+}
+```
+
+- Timetable response:
+
+```ts
+interface StationPageDataType {
+  transports: StationTimeSectionTable[];
+}
+```
+
+Sub interfaces for response:
+
+```ts
+interface StationTimeSectionTable {
+  segment_transport: TransportInfo; // Transport info interface from top of this document
+  segments: StationSegments[];
+}
+
+interface StationSegments {
+  transport_info: TransportInfo;
+  direction: string;
+  platform?: string;
+  departure_info: {
+    plan_date: string; //  2023-07-17T11:25:00.000
+    actual_date?: string; // 2023-07-17T11:26:00.000
+  };
+  interruption_type?: "delayed" | "canceled";
+
+  // not sure yet how we going to get next results
+  // for one timetable segment. For now we just add `next_token`.
+  // Will see later when you dive in it.
+  next_token?: string;
+}
+```
+
+**Based on incoming params to BE responses can vary:**
+
+**Examples**:
+
+1.
+
+- request:
+
+```js
+  name: 'berlin-hauptbahnhof',
+  city: 'berlin',
+  state: 'berlin',
+  country: 'deutschland',
+
+  time: '12:30',
+  date: '22.09.2023',
+  type: 'departure',
+```
+
+- response:
+  Results `transports` are for all available `transport_types` for respective station.
+
+```js
+{
+  transports: [
+    {
+      segment_transport: {
+        transport: "ubahn",
+      },
+      segments: [
+        {
+          departure_info: {
+            plan_date: "2023-08-09T16:25:06.274",
+            actual_date: "2023-08-09T16:35:06.274",
+          },
+          direction: "Olympia Einkaufszentrum",
+          transport_info: {
+            line: "U2",
+            transport: "ubahn",
+            scheme: "VBB",
+            color: "#fff",
+            text_color: "rgba(0, 0, 0, 0.54)",
+          },
+          interruption_type: "delayed",
+          platform: "",
+        },
+        ...
+      ],
+    },
+    {
+      segment_transport: {
+        transport: "regional_long-distance",
+      },
+      segments: [
+        {
+          departure_info: {
+            plan_date: "2023-08-09T16:25:06.274",
+            actual_date: "2023-08-09T16:35:06.274",
+          },
+          direction: "Mangfallplatz",
+          transport_info: {
+            line: "ICE",
+            transport: "ice",
+            color: '#0454A3',
+            text_color: '#ffffff',
+            group_transport_type: 'regional_long-distance'
+          },
+        },
+        {
+           departure_info: {
+            plan_date: "2023-08-09T16:25:06.274",
+            actual_date: "2023-08-09T16:35:06.274",
+          },
+          direction: "Mangfallplatz",
+          transport_info: {
+            line: "FLX",
+            transport: "flixtrain",
+            color: '#73D700',
+            text_color: '#ffffff',
+            group_transport_type: 'regional_long-distance'
+          },
+        }
+        ...
+      ],
+    },
+
+  ]
+}
+```
+
+2.
+
+- request:
+
+```js
+  name: 'berlin-hauptbahnhof',
+  city: 'berlin',
+  state: 'berlin',
+  country: 'deutschland',
+  transport_type: 'sbahn', <<<
+
+  time: '12:30',
+  date: '22.09.2023',
+  type: 'departure',
+```
+
+- response:
+  Results only for `S-bahn`. Each `transports` item is a possible line for `Sbahn`.
+  Where `segments` are result for respective line with different departures times in any direction
+
+```js
+{
+  transports: [
+    {
+      segment_transport: {
+        transport: "sbahn",
+        line: "S2",
+        color: "....",
+        text_color: "...",
+        scheme: "...",
+      },
+      segments: [
+        {
+          departure_info: {
+            plan_date: "2023-08-09T16:25:06.274",
+            actual_date: "2023-08-09T16:35:06.274",
+          },
+          direction: "Mangfallplatz",
+          transport_info: {
+            line: "S2",
+            transport: "sbahn",
+            scheme: "VBB",
+            color: "#fff",
+            text_color: "rgba(0, 0, 0, 0.54)",
+          },
+          interruption_type: "delayed",
+          platform: "",
+        },
+        ...
+      ],
+    },
+    {
+      segment_transport: {
+        transport: "sbahn",
+        line: "S7",
+        color: "....",
+        text_color: "...",
+        scheme: "...",
+      },
+      segments: [
+        {
+          departure_info: {
+            plan_date: "2023-08-09T16:25:06.274",
+            actual_date: "2023-08-09T16:35:06.274",
+          },
+          direction: "Olympia Einkaufszentrum",
+          transport_info: {
+            line: "S7",
+            transport: "sbahn",
+            scheme: "VBB",
+            color: "#fff",
+            text_color: "rgba(0, 0, 0, 0.54)",
+          },
+          ...
+        },
+        ...
+      ],
+    },
+  ];
+}
+```
+
+3.
+
+- request:
+
+```js
+  name: 'berlin-hauptbahnhof',
+  city: 'berlin',
+  state: 'berlin',
+  country: 'deutschland',
+  transport_type: 'sbahn', <<<
+  line: 's3', <<<
+```
+
+- response (For this kind of reqeust `transports` always with 1 element only):
+  Only results for `S-bahn S3` where `segments` are items with different departure times in any direction;
+
+```js
+{
+  transports: [{
+    segment_transport: {
+      transport: "sbahn",
+      line: "S3",
+      color: "....",
+      text_color: "...",
+      scheme: "...",
+  },
+  segments: [
+    {
+      departure_info: {
+        plan_date: "2023-08-09T16:25:06.274",
+        actual_date: "2023-08-09T16:35:06.274",
+      },
+      direction: "Mangfallplatz",
+      transport_info: {
+        line: "S3",
+        transport: "sbahn",
+        scheme: "VBB",
+        color: "#fff",
+        text_color: "rgba(0, 0, 0, 0.54)",
+      },
+      interruption_type: "delayed",
+      platform: "",
+    },
+    ...
+  ],
+  }]
+}
+
+```
+
+_The behavior for sub-stop is the same. Only Difference in request params `primary_stop_title` will be added_
+
+---
+
+## 5. Station table additional results API:
+
+- Request params:
+
+```ts
+interface CommomStationFetchParams {
+  name: string;
+  city: string;
+  state: string;
+  country: string;
+
+  primary_stop_title?: string;
+  transport_type?: string;
+  line?: string;
+}
+```
+
+- Additional info response:
+
+```ts
+interface AdditionalStationsResponse {
+  nearest_connections?: AdditionalStationItem[];
+  sub_stations?: AdditionalStationItem[];
+
+  local_popular_connections?: AdditionalStationItem[];
+  intercity_popular_connections?: AdditionalStationItem[];
+
+  available_connections?: TransportInfo[];
+}
+```
+
+Nested interfaces:
+
+```ts
+interface AdditionalStationItem {
+  departure_info: StopPointInfo;
+
+  transport_list?: TransportsTypes[]; // ['sbahn', 'ubahn', 'bus' ...]
+  arrival_info?: StopPointInfo;
+  additional_info?: {
+    distance?: number;
+    price_from?: number;
+    duration?: string;
+  };
+}
+
+type StopPointInfo = {
+  stop_title: string;
+  short_title: string;
+  city_name: string;
+  country_name: string;
+  state_name: string;
+  place_type: "city" | "stop" | "street";
+
+  // stop exist if it is sub-station
+  primary_stop_title?: string;
+  primary_stop_short_title?: string;
+};
+```
+
+**Based on incoming params to BE responses can vary:**
+**Examples**
+
+1.
+
+- request
+
+```js
+  name: 'berlin-hauptbahnhof',
+  city: 'berlin',
+  state: 'berlin',
+  country: 'deutschland',
+```
+
+- response
+
+```js
+const response = {
+  intercity_popular_connections: [
+    {
+      departure_info: {
+        city_name: "Berlin",
+        country_name: "Deutschland",
+        short_title: "Berlin",
+        state_name: "Berlin",
+        stop_title: "Berlin Hauptbahnhof",
+        place_type: "city",
+      },
+      arrival_info: {
+        city_name: "München",
+        country_name: "Deutschland",
+        short_title: "München",
+        state_name: "Bayern",
+        place_type: "city",
+        stop_title: "München",
+      },
+      additional_info: {
+        duration: "03:40",
+        price_from: 4700,
+      },
+    },
+    //...
+  ],
+  local_popular_connections: [
+    {
+      departure_info: {
+        city_name: "Berlin",
+        country_name: "Deutschland",
+        short_title: "Berlin",
+        state_name: "Berlin",
+        stop_title: "Berlin Hauptbahnhof",
+        place_type: AutocompleteItemTypes.city,
+      },
+      arrival_info: {
+        city_name: "München",
+        country_name: "Deutschland",
+        short_title: "München",
+        state_name: "Bayern",
+        stop_title: "München",
+        place_type: AutocompleteItemTypes.city,
+      },
+      additional_info: {
+        duration: "00:48",
+      },
+    },
+    //...
+  ],
+
+  // If station have sub stations then this field exist
+  // if not then `nearest_connections`
+  sub_stations: [
+      departure_info: {
+        city_name: 'Berlin',
+        country_name: 'Deutschland',
+        short_title: 'Berlin Hbf (Nord)',
+        state_name: 'Berlin',
+        stop_title: 'Berlin Hbf (Nord)',
+        place_type: 'city',
+
+        primary_stop_title: 'Berlin Hauptbahnhof',
+        primary_stop_short_title: 'Berlin',
+      },
+      transport_list: [
+        'ubahn',
+        'sbahn',
+        'bus',
+      ],
+      //...
+  ],
+
+  // or nearest_connections instead of `sub_stations`:
+  nearest_connections: [
+    {
+      departure_info: {
+        city_name: 'Berlin',
+        country_name: 'Deutschland',
+        short_title: 'Berlin Hauptbahnhof',
+        state_name: 'Berlin',
+        stop_title: 'Berlin Hauptbahnhof',
+        place_type: 'city',
+      },
+      transport_list: [
+        'ubahn',
+        'sbahn',
+        'bus',
+      ],
+    }
+  ]
+};
+```
+
+2. 
+- request:
+
+```js
+  name: 'berlin-hauptbahnhof',
+  city: 'berlin',
+  state: 'berlin',
+  country: 'deutschland',
+  transport_type: 'sbahn', << 
+```
+
+- response:
+All additional available transports for respective station. 
+```js
+
+const response = {
+  available_connections: [
+    {
+      transport: 'regional_long-distance'
+    },
+    {
+      transport: 'ubahn'
+    },
+    {
+      transport: 'bus'
+    }
+    //...
+  ]
+}
+
 ```
 
 
-___
-**src/screens/uploadPostFile/hook.ts**
+3. 
+- request:
 
-1. Перенос строк
-2. Мне кажеться я где то уже встречал точно такую же функцию как `hasIOSPermission`. Нельзя ее вынести в утилиты и переиспользовать ?
+```js
+  name: 'berlin-hauptbahnhof',
+  city: 'berlin',
+  state: 'berlin',
+  country: 'deutschland',
+  transport_type: 'sbahn', <<<
+  line: 's3', <<< 
+```
 
-3. В другом компоннете похожем у тебя данный массив вынесен в переменную `['UNAVAILABLE', 'BLOCKED', 'DENIED']` а тут пожалела. 
+- response:
+All additional available lines for respective station and respective transport type. 
+```js
 
-___
-**src/shared/authInput/nickNameInput.tsx**
+const response = {
+  available_connections: [
+    {
+      transport: 'sbahn'
+      line: 's7',
+      color: '...',
+      text_color: '...',
+      scheme: '....'
+    },
+    {
+      transport: 'sbahn'
+      line: 's4',
+      color: '...',
+      text_color: '...',
+      scheme: '....'
+    },
+    {
+      transport: 'sbahn'
+      line: 's8',
+      color: '...',
+      text_color: '...',
+      scheme: '....'
+    }
+    //...
+  ]
+}
 
-1. Перенос строк
-2. Цвет в константы `"#8C8F9C"`
-
-
-___
-**src/shared/authInput/phoneInput..tsx**
-
-1. Перенос строк
-2.  В константы `"#8C8F9C"`
-
-___
-**src/shared/header/index.tsx**
-
-1. Перенос строк 
-
-___
-**src/shared/input/index.tsx**
-
-1. В константы `['#00C8FE', '#4FACFE']`
+```
