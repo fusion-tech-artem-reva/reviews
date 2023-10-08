@@ -1,793 +1,592 @@
-## 1. General stop page updates:
+## Общие вопросы
+- Какие задачи решали? Было ли что-то сложное/интересное на твой взгляд? Какой стек использовался? 
+- Сразу поразмышляем и в процессе размышления буду задавать уточняющие вопросы?
+<!-- - Есть личный гитхаб ? Можно посмотреть ?
+- Был ли опыт работы с google рекламой и google analytics ?  -->
 
-- now we have 3 types of time tables:
+## Основы HTML
+**Q:Зачем нужна семантически правильная верстка ?**
+_A: Семантически правильная верстка способствует лучшей доступности, улучшает SEO._
 
-  - time table groupped by transport types
-    screenshots:
-  - time table for respective transport type and groupped by lines
-    screenshots:
-  - time table for respective transport type and line
-    screenshots:
+_Использование семантических тегов, таких как `<header>, <nav>, <main>, <footer>`, позволяет пользователям с ограниченными возможностями пользующиеся средствами чтения с экрана, лучше понимать структуру страницы и навигацию_.
 
-- also stop pages can be by single or by sub-stop.
-  - stop page by stop - `/haltestelle/deutschland/berlin/berlin/berlin-hauptbahnhof` and otheres from stop:
-    - `/haltestelle/deutschland/berlin/berlin/berlin-hauptbahnhof/sbahn`
-    - `/haltestelle/deutschland/berlin/berlin/berlin-hauptbahnhof/sbahn/s7`
-  - stop page by sub-stop - `/haltestelle/deutschland/berlin/berlin/berlin-hauptbahnhof/sub/berlin-hbf-nord` and others from sub stop:
-    - `/haltestelle/deutschland/berlin/berlin/berlin-hauptbahnhof/sub/berlin-hbf-nord/sbahn`
-    - `/haltestelle/deutschland/berlin/berlin/berlin-hauptbahnhof/sub/berlin-hbf-nord/sbahn/s7`
+_Поисковые системы могут более точно понимать содержимое страницы, если она семантически правильно размечена. Это может помочь повысить рейтинг вашего сайта в поисковой выдаче_
 
----13
+**Q: Что такое SEO?**
+_A: (Search Engine Optimization) процесс оптимизации веб-сайта или страницы с целью улучшения их видимости и ранжирования в результатах поиска_
 
-## 2. Updated model for `transport_info`:
+**Q:Знаешь что такое schema.org? Работал ли с microdata json-ld?**
+_А:Microdata - это один из форматов разметки данных на веб-страницах, который используется для добавления контекстной информации к элементам на странице._
 
-```ts
-interface TransportInfo {
-  line?: string;
-  transport: TransportsTypes;
-  scheme?: string;
-  color?: string;
-  text_color?: string;
-  short_line?: string;
-  // NEW fields
-  relation?: string;
-  group_transport_type?: TransportsTypes;
-}
-```
 
-- `group_transport_type` - is for `Fern- & Regio` type. Which includes different transports like `re, ice, flixtrain ...`, Boris know which one should be included.
-- `relation` - is for generating `generic` line page. It's can be `scheme`, `group_transport_type`, `city` etc. Boris work on it.
+## CSS
+**Q: Какой Ваш опыт работы с препроцессорами и css-in-js? С какими технологиями доводилось сталкиваться?**_
+_A: Вопрос общий, но человек скорее всего будет говорить про SASS, LESS, Stylus (препроцессоры) и Styled-components, css-modules, emotion (css-in-js)._
 
-for example if it is `Group type`:
-colors are real, For flix use second color combination for all others groupped items 1 combination;
 
+**Q: Работали ли с css grid? В чем отличие от явных и неявных гридов? В чем отличие процентов от fr? Что такое minmax?**
+
+_A_: 
+- _Явный грид описывает “жесткую” сетку (например 12x4) через grid-template-columns / grid-template-rows._ 
+- _Неявный грид описывает поведение элементов если “жесткая” сетка неописана, либо элементы “выпадают” за описанную сетку. Используется grid-auto-columns / grid-auto-rows._
+- _Fr похож на flex-grow и делит свободное место родителя. Проценты высчитываются относительно размеров родителя и не учитывают gap’ы.
+minmax специальная функция для задания неявных гридов. Определяет минимальный и максимальный диапазон размеров элемента._
+
+**Q: Что такое CSS переменные (не путать с scss переменными)?**
+_A:CSS переменные,(custom properties), позволяют создавать и использовать переменные в CSS. Можно определить один раз и затем использовать в различных местах вашего CSS кода._
+Преимущества
+- переиспользование
+- динамическое изменение через js
+- упрощение темизации
+
+
+**Q: Приходилось ли вам делать дополнительные темы в приложении (светлая / темная темы, например). Как вы этого добивались?**
+
+_A: Довольно общий вопрос, так как технологий довольно много. Несколько вариантов развития общения:_
+- _Через styled-components / emotion в react. Используя themeContext._
+- _Через css или препроцессоры, добавляя дополнительный класс в body и переопределяя стили приложения._
+- _Через сss переменные_
+
+
+**Q: Приходилось ли работать с анимациями? Какие способы анимировать что либо ты знаешь?** 
+_A_: 
+- _через переназначения свойства (смена классов или инлайново) и transition_
+- _через keyframes_
+- _через изменения свойств css через js и использование timeout/interval/requestAnimationFrame_
+
+
+
+**Чуть попразмышлять:**
+1. Нужно реализовать модальное окно, куда бы ты его добавил в DOM дерево и почему?
+2. Имеет ли значение порядок классов тэга в css? 
+3. Что знаешь про вес селекторов тэгов? Как можно увеличить вес?
+`* > tag > [attr=value] > class > id > inline`
+`0000 > 0001 > 0010 > 0100 > 1000`
+- Комбинирование селекторов увеличивает вес
+
+
+## Основы JS
+
+**Q: В чем отличия var от let и от const?**
+A: Директива let / const по или локально во всей функции, независимо от области блока.озволяет объявить локальную переменную с областью видимости, ограниченной текущим блоком кода . В отличие от ключевого слова var, которое объявляет переменную глобальн
+
+**Q: Перечислите типы используемые в Javascript**
+A: Number, Boolean, String, Function, Object, Undefined, null.
+
+**Q: Чем отличаются переменные a и b?**
 ```js
-const transport_type = {
-  line: 'ICE',
-  transport: 'ice',
-  color: '#0454A3',
-  text_color: '#ffffff',
-
-  relation: 'regional_long-distance' // Boris think about short name for this type,
-  group_transport_type: 'regional_long-distance'
-}
-
-const transport_type2 = {
-  line: 'FLX',
-  transport: 'flixtrain',
-  color: '#73D700',
-  text_color: '#ffffff',
-
-  relation: 'regional_long-distance' // Boris think about short name for this type,
-  group_transport_type: 'regional_long-distance'
-}
+const a = 1;
+const b = { key: 1 };
 ```
+A: a будет передаваться по значению, а b по ссылке. Кандидат должен объяснить разницу между этими понятиями. 
 
----
+**Q: Что такое this? Рассказать про bind, call, apply.**
+A: Это контекст. Его можно менять. У стрелочных функций нет своего this и arguments.
 
-## 3. Updates in `/api/haltestelle/info`:
+**Q: Чем отличается const foo = function () {...} от function foo() {...}**
+A: Второй вариант можно вызвать до декларации, а первый нет. 
+Также при ответе на данный вопрос плюсом кандидату будет упоминание про hoisting переменных
 
-#### Request params:
-
-```ts
-type StopInfoFetchParams = {
-  name: string;
-  city: string;
-  state: string;
-  country: string;
-
-  primary_stop_title?: string;
-  transport_type?: string;
-  line?: string;
-};
-```
-
-#### response additional fields:
-
-```ts
-interface StopInfoResponse extends PreviosStopInfoResponse {
-  current_transport_info?: TransportInfo;
-  available_direction_filter?: { direction: string }[];
-  available_transports_filter?: TransportInfo[];
-
-  primary_stop_short_title?: string;
-  primary_stop_title?: string;
-}
-```
-
-**Based on incoming `StopInfoFetchParams` to BE responses can vary:**
-
-- `primary_stop_short_title`, `primary_stop_title` - are for the requests with `primary_stop_title` parameter.
-- `current_transport_info` - availalbe for the requsts `transport_type` or `transport_type & line` exists;
-  if only transport type exists
-- `available_transports_filter`- can be availalbe for all requests;
-- `available_direction_filter` - availalbe for the requsts with `line`
-
-**Examples:**
-
-1.
-
-- request:
-
+**Q: Что вернут следующие выражения:**
 ```js
-  name: 'berlin-hauptbahnhof',
-  city: 'berlin',
-  state: 'berlin',
-  country: 'deutschland',
+12 > '15' 
+'15' > 016 
+false == '0'
+const a = { w: 1}; const b = { w: 1 }
+a == b
+```
+A: false, true, true, false
+Кандидат должен рассказать про приведение типов при сравнении
+
+**Q: Что выведет этот код? Почему именно так? Как следует изменить, чтобы выводил от 0 до 9 не убирая setTimeout?**
+```js
+function foo() {
+    for (var i = 0; i < 10; i++) {
+        setTimeout(() => {
+            console.log(i)
+        }, 50)
+    }
+}
+foo();
+```
+A:
+Программа выведет число 10 десять раз. Связано с тем, что переменная i объявлена через var и успевает переопределиться пока мы ожидаем срабатывания console.log.
+Одно из возможных решений вывода от 0 до 9 через замену var на let:
+```js
+function foo() {
+    for (let i = 0; i < 10; i++) {
+        setTimeout(() => {
+            console.log(i)
+        }, 50)   
+    }
+}
+foo();
 ```
 
-- response:
-  No need anything in `available_transports_filter` only `transport`
-
+через IIFE:
 ```js
-const response: {
-  ...rest_untouched_fields,
-  stop_name: 'Berlin Hauptbahnhof',
-  available_transports_filter: [
-  {
-    transport: 'regional_long-distance',
-  },
-  {
-    transport: 'sbahn'
-  },
-  {
-    transport: 'ubahn'
+function foo() {
+   for (i = 0; i < 10; i++) {
+       ((x) => {
+           setTimeout(() => {
+               console.log(x)
+           }, 50)  
+       })(i)
+   }
+}
+foo();
+```
+
+
+**Q: Что выведут следующий сниппет:**
+```js
+const a = 1;
+const b = { c: 2 };
+let d = a;
+const q = b;
+d = 3;
+q.c = 1
+
+
+console.log('a', a)
+console.log('d', d)
+console.log('b', b)
+console.log('q', q)
+```
+A: 
+a 1
+d 3
+b { c: 1 }
+q { c: 1 }
+
+Важно услышать от кандидата понимание принципов работы ссылочного типа данных
+
+
+**Q: Что выведет следующий сниппет:**
+```js
+const a = {
+  w: 1
+}
+a.w = 2;
+console.log('>>', a);
+a = { s: 12 };
+console.log('>>', a);
+```
+Выведет:
+
+>{ w: 2 }
+TypeError  Assignment to constant variable
+Проверка на внимательность: нельзя переопределять переменную a.
+
+**Q: Что выведет следующий сниппет:**
+```js
+const b = foo1();
+const a = foo();
+
+const foo = () => {
+  console.log('here');
+}
+
+function foo1() {
+  console.log('here1')
+}
+```
+A: Произойдет ReferenceError, так как foo описан ниже его вызова. Можно починить, передвинув const foo выше.
+
+**Q: Что выведет следующий сниппет:**
+```js
+let d = {
+  b: 1,
+  q: function() {
+    return this.b;
   }
-  ];
+};
+
+console.log(">>>", d.q());
+```
+
+A:
+> 1
+
+**Q.  Как изменить вызов метода q, чтобы вывелся текст Hello. Объект d менять нельзя**
+A:
+```js
+console.log(">>>", d.q.call({ b: "Hello" }));
+```
+
+**Q: Какую задачу решают промисы? Какие статические методы Promise вам известны и какое их назначение?**
+A: Promise – это специальный объект, который содержит своё состояние. Вначале pending («ожидание»), затем – одно из: fulfilled («выполнено успешно») или rejected («выполнено с ошибкой»).
+Кроме создания нового объекта Promise (через new Promise), можно воспользоваться следующими статическими методами:
+- Promise.all - вернет промис промисов. Если один из них будет rejected - вся цепочка станет rejected.
+- Promise.race - вернет первое выполненное или отклоненное обещание.
+- Promise.allSettled (новый) - аналогично all, но не отклоняется если один из промисов реджектится.
+- Promise.resolve - вернет автоматически выполненное общание
+- Promise.reject - вернет отклоненное обещание
+
+
+**Q: Что выведет этот код? Почему именно так? Как заставить вывести реальные данные из запроса?**
+```js
+function foo() {
+   let data = fetch('https://yesno.wtf/api').then(a => a.json());
+   console.log(data)
 }
+
+foo()
 ```
+A: Выведет объект Promise. Для вывода реальных данных нужно применить либо async / await, либо убрать console.log в новый then.
 
-2.
 
-- request:
+
+**Q: Что выведет этот код?**
+```js
+function job() {
+    return new Promise(function(resolve, reject) {
+        reject();
+    });
+}
+let promise = job();
+promise
+.then(function() {
+    console.log('Success 1');
+})
+.then(function() {
+    console.log('Success 2');
+})
+.then(function() {
+    console.log('Success 3');
+})
+.catch(function() {
+    console.log('Error 1');
+})
+.then(function() {
+    console.log('Success 4');
+});
+```
+A: Error 1, Success 4
+
+**Q: Что выводится в консоль?**
 
 ```js
-  name: 'berlin-hauptbahnhof',
-  city: 'berlin',
-  state: 'berlin',
-  country: 'deutschland',
-  transport_type: 'sbahn' <<<
+console.log('script start');
+
+setTimeout(function() {
+ console.log('setTimeout');
+}, 0);
+
+new Promise(function(resolve, reject) {
+ console.log('promise1');
+ resolve();
+}).then(function() {
+ console.log('promise2');
+}).then(function() {
+ console.log('promise3');
+});
+
+console.log('script end');
 ```
 
-- response:
+A1:
+> script start
+> promise1
+> script end
+> promise2
+> promise3
+> setTimeout
 
+**Q: Async / await. Назначение. Что возвращают такие функции?**
+A: “Сахар” для работы с Promises. Позволяет описывать синхронно асинхронные операции. Такие функции возвращают промисы, которые будут резолвить/реджектить то, что возвращается внутри.   
+
+**Q: Как можно переписать следующий сниппет:**
 ```js
-const response: {
-  ...rest_untouched_fields,
-  current_transport_info: {
-    transport: 'sbahn'
-  },
-  available_transports_filter: [
-  {
-    transport: 'sbahn',
-    line: 'S7',
-    scheme: 'MVV',
-    color: '....',
-    text_color: '...'
-  },
-  {
-   transport: 'sbahn',
-    line: 'S5',
-    scheme: 'MVV',
-    color: '....',
-    text_color: '...'
-  },
-  {
-   transport: 'sbahn',
-    line: 'S2',
-    scheme: 'MVV',
-    color: '....',
-    text_color: '...'
+foo()
+  .then(res => console.log('>> res', res))
+  .catch(err => console.log('err', err))
+```
+A:
+```js
+const snippet = async () => {
+  try {
+    const res = await foo();
+    console.log('res', res);
+  } catch (err) {
+    console.log('err', err)
   }
-  ];
 }
+
 ```
 
-3.
 
-- request:
+**Q: Что такое замыкание?**
+A: Замыкание — это комбинация функции и лексического окружения, в котором эта функция была определена. Другими словами, замыкание дает вам доступ к области видимости внешней функции из внутренней функции. В JavaScript замыкания создаются каждый раз при создании функции, во время ее создания.
+
+
+**Q: Почему javascript одновременно является однопоточным и асинхронным? Что такое event loop в V8? Различие между microtask и macrotask?**
+
+A:
+Объяснение работы event loop можно прочитать например тут: 
+https://medium.com/devschacht/javascript-eventloop-explained-f2dcf84e36ee
+
+Microtask (Promise, Mutation Observer)
+Macrotask (setTimeout, ajax)
+Отличие микро от макро в том, как их обрабатывает event loop. Последний обязан опустошить все микротаски, что бы добраться до макротаска и render. Макротаск берется один на цикл.Подробнее тут: https://habr.com/ru/post/461401/
+
+
+**Q: Какие полезные Браузерные API есть?**
+- Push API
+- Geolocation API
+- Service Workers
+- Web Audio API
+
+**Q: Приходилось ли работать с service-workers?Что это и для чего?**
+A: Сервис-воркер – это скрипт, который работает в фоновом режиме, независимо от веб-страницы. Он позволяет выполнять задачи, которые не требуют взаимодействия с пользователем или даже находиться в активной вкладке браузера. Некоторые из основных возможностей сервис-воркеров включают:
+
+- Кеширование ресурсов для работы в офлайн-режиме
+- Получение и отправка push-уведомлений
+- Синхронизация данных в фоновом режиме
+
+
+- С какими технологиями и фреймворками сталкивались? Что понравилось больше всех и меньше всех. Почему?
+
+**Q: Читали ли книги по паттернам в Javascript? Какие паттерны знаете и можете рассказать? Где и как использовали?**
+A: Очень общий вопрос потому что под паттерны можно подвести даже best practices идеи. Для прозрачности можно считать паттернами практики описанные у Gang of Four (GoF) и несколько дополнительных паттернов известных в основном среди javascript. 
+
+Примеры:
+	Основные GoF паттерны:
+Синглтон. Один объект на все приложение.
+Observer. Нотификация подписчиков о новых ивентах 
+Декоратор. “Оборачивание” инстанса функцией для придания ему нового функционала.
+Фабрика. Специализированная функция (либо набор функций), которая принимают в себя параметры и возвращает специализированный инстанс объекта. Отличие от конструктора класса в том, что фабрика является дополнительной абстракцией и служит скорее для специализации. Например, предположим, у нас есть объекты Daddy, Mammy, и lad, создавая их с помощью фабрики мы можем просто сказать — familyfactory.createLad(); familyfactory.createDaddy(), а уж то, что они оба рыжие и 210см. роста, за нас решит фабрика — эти параметры мы не задаем.
+Медиатор. Похож на Observer, с тем отличие что Observer рассылает нотификации инстансам с одинаковым интерфейсом. Медиатор же скорее служит посредником между инстансами разного типа. Уменьшает связность приложения. Пример медиатора в реальной жизни это диспетчер в Аэропорту, который служит посредником между “землей” и “воздухом”.
+	Javascript паттерны:
+Модуль. Инкапсулирование внутренних переменных внутри замыканий.
+Receive Object Return Object (RoRo). Микропаттерн для передачи и возврата данных в функцию и из функции. Вместо того, что бы писать 5+ аргументов функции довольно часто бывает удобно передать объект options (возможно даже с неполным набором аргументов) и вернуть специализированный объект.
+Служит для избегания записей вроде foo(undefined, true, undefined, undefined, true).
+https://habr.com/ru/company/ruvds/blog/350536/
+
+
+**Q: Работали ли с javascript на сервере? Если да, то чем именно занимались и с каким стеком работали?**
+A: Общий вопрос. Интересен опыт кандидата, чем именно занимался и так далее. Из самых общих вещей это узнать про работу с запросами и базами данных.
+
+
+**Q: Предположим вам нужно сделать сайт-магазин с нуля и у вы вольны выбирать любые технологии. Какие инструменты вы возьмете? Почему именно такие?**
+A: Общий вопрос. Интересен стек который выберет человек и аргументирует почему выбрал именно такой.
+
+**Q: Как вы ищете ошибки в приложениях?**
+A: Общий вопрос, что бы узнать как мыслит кандидат и как он локализует ошибки. Здесь он так же может рассказать про использование дебаггеров в vs code и браузерных devtools, console.log со stack trace и профайлеров..
+
+**Q: Какие структуры данных знаешь ?**
+A:
+- Массивы (одномерный, многомерный), (упорядоченный набор элементов, каждый из которых хранит одно значение)
 
 ```js
-  name: 'berlin-hauptbahnhof',
-  city: 'berlin',
-  state: 'berlin',
-  country: 'deutschland',
-  transport_type: 'sbahn', <<<
-  line: 's7', <<<
+const arr = [];
+const arr2 = [[], [], []];
 ```
 
-- response:
+- Связный список (структура данных, состоящая из элементов, содержащих помимо собственных данных ссылки на следующий и/или предыдущий элемент списка)
 
 ```js
-const response: {
-  ...rest_untouched_fields,
-    current_transport_info: {
-      transport: 'sbahn',
-      line: 'S7',
-      scheme: 'MVV',
-      color: '....',
-      text_color: '...'
-  },
+const head = {
+  name: 'asd',
+  next: nextObj
+};
 
-  available_transports_filter: [ // << can be ommitted for current response type (optional)
-  {
-    transport: 'sbahn',
-    line: 'S7',
-    scheme: 'MVV',
-    color: '....',
-    text_color: '...'
-  },
-  ],
-  available_direction_filter: [{ direction: 'Mangfallplatz' }, { direction: 'Olympia Einkaufszentrum' }]
-}
-```
-
-4. For Sub-Stops the same flow as above but only
-
-- request contains `primary_stop_title`:
-
-```js
-  name: 'berlin-hbf-nord',
-  city: 'berlin',
-  state: 'berlin',
-  country: 'deutschland',
-  primary_stop_title: 'berlin-hauptbahnhof', <<<
-  transport_type: 'sbahn',
-  line: 's7',
-```
-
-- and response containse `primary_stop_short_title` and `primary_stop_title`
-
-```js
-const response: {
-  ...rest_untouched_fields,
-  stop_name: "Berlin Hbf (Nord)",
-  short_title: "Berlin Hbf (Nord)",
-
-  primary_stop_short_title: "Berlin Hauptbahnhof",
-  primary_stop_title: "Berlin Hauptbahnhof",
-
-  available_transports_filter: [
-  {
-    transport: 'sbahn',
-    line: 'S7',
-    scheme: 'MVV',
-    color: '....',
-    text_color: '...'
-  },
-  ],
-  available_direction_filter: [{ direction: 'Mangfallplatz' }, { direction: 'Olympia Einkaufszentrum' }]
-}
-```
-
----
-
-## 4. New timetable API (we call it stations api);
-
-- Timetable request params
-
-```ts
-//Timetable request params:
-interface StationTableFetchParams {
-  name: string;
-  city: string;
-  state: string;
-  country: string;
-
-  primary_stop_title?: string;
-  transport_type?: string;
-  line?: string;
-
-  date?: string;
-  time?: string;
-  type: string; // 'now' | 'departure' | 'arrival' | 'last'
-}
-```
-
-- Timetable response:
-
-```ts
-interface StationPageDataType {
-  transports: StationTimeSectionTable[];
-}
-```
-
-Sub interfaces for response:
-
-```ts
-interface StationTimeSectionTable {
-  segment_transport: TransportInfo; // Transport info interface from top of this document
-  segments: StationSegments[];
-}
-
-interface StationSegments {
-  transport_info: TransportInfo;
-  direction: string;
-  platform?: string;
-  departure_info: {
-    plan_date: string; //  2023-07-17T11:25:00.000
-    actual_date?: string; // 2023-07-17T11:26:00.000
-  };
-  interruption_type?: "delayed" | "canceled";
-
-  // not sure yet how we going to get next results
-  // for one timetable segment. For now we just add `next_token`.
-  // Will see later when you dive in it.
-  next_token?: string;
-}
-```
-
-**Based on incoming params to BE responses can vary:**
-
-**Examples**:
-
-1.
-
-- request:
-
-```js
-  name: 'berlin-hauptbahnhof',
-  city: 'berlin',
-  state: 'berlin',
-  country: 'deutschland',
-
-  time: '12:30',
-  date: '22.09.2023',
-  type: 'departure',
-```
-
-- response:
-  Results `transports` are for all available `transport_types` for respective station.
-
-```js
-{
-  transports: [
-    {
-      segment_transport: {
-        transport: "ubahn",
-      },
-      segments: [
-        {
-          departure_info: {
-            plan_date: "2023-08-09T16:25:06.274",
-            actual_date: "2023-08-09T16:35:06.274",
-          },
-          direction: "Olympia Einkaufszentrum",
-          transport_info: {
-            line: "U2",
-            transport: "ubahn",
-            scheme: "VBB",
-            color: "#fff",
-            text_color: "rgba(0, 0, 0, 0.54)",
-          },
-          interruption_type: "delayed",
-          platform: "",
-        },
-        ...
-      ],
-    },
-    {
-      segment_transport: {
-        transport: "regional_long-distance",
-      },
-      segments: [
-        {
-          departure_info: {
-            plan_date: "2023-08-09T16:25:06.274",
-            actual_date: "2023-08-09T16:35:06.274",
-          },
-          direction: "Mangfallplatz",
-          transport_info: {
-            line: "ICE",
-            transport: "ice",
-            color: '#0454A3',
-            text_color: '#ffffff',
-            group_transport_type: 'regional_long-distance'
-          },
-        },
-        {
-           departure_info: {
-            plan_date: "2023-08-09T16:25:06.274",
-            actual_date: "2023-08-09T16:35:06.274",
-          },
-          direction: "Mangfallplatz",
-          transport_info: {
-            line: "FLX",
-            transport: "flixtrain",
-            color: '#73D700',
-            text_color: '#ffffff',
-            group_transport_type: 'regional_long-distance'
-          },
-        }
-        ...
-      ],
-    },
-
-  ]
-}
-```
-
-2.
-
-- request:
-
-```js
-  name: 'berlin-hauptbahnhof',
-  city: 'berlin',
-  state: 'berlin',
-  country: 'deutschland',
-  transport_type: 'sbahn', <<<
-
-  time: '12:30',
-  date: '22.09.2023',
-  type: 'departure',
-```
-
-- response:
-  Results only for `S-bahn`. Each `transports` item is a possible line for `Sbahn`.
-  Where `segments` are result for respective line with different departures times in any direction
-
-```js
-{
-  transports: [
-    {
-      segment_transport: {
-        transport: "sbahn",
-        line: "S2",
-        color: "....",
-        text_color: "...",
-        scheme: "...",
-      },
-      segments: [
-        {
-          departure_info: {
-            plan_date: "2023-08-09T16:25:06.274",
-            actual_date: "2023-08-09T16:35:06.274",
-          },
-          direction: "Mangfallplatz",
-          transport_info: {
-            line: "S2",
-            transport: "sbahn",
-            scheme: "VBB",
-            color: "#fff",
-            text_color: "rgba(0, 0, 0, 0.54)",
-          },
-          interruption_type: "delayed",
-          platform: "",
-        },
-        ...
-      ],
-    },
-    {
-      segment_transport: {
-        transport: "sbahn",
-        line: "S7",
-        color: "....",
-        text_color: "...",
-        scheme: "...",
-      },
-      segments: [
-        {
-          departure_info: {
-            plan_date: "2023-08-09T16:25:06.274",
-            actual_date: "2023-08-09T16:35:06.274",
-          },
-          direction: "Olympia Einkaufszentrum",
-          transport_info: {
-            line: "S7",
-            transport: "sbahn",
-            scheme: "VBB",
-            color: "#fff",
-            text_color: "rgba(0, 0, 0, 0.54)",
-          },
-          ...
-        },
-        ...
-      ],
-    },
-  ];
-}
-```
-
-3.
-
-- request:
-
-```js
-  name: 'berlin-hauptbahnhof',
-  city: 'berlin',
-  state: 'berlin',
-  country: 'deutschland',
-  transport_type: 'sbahn', <<<
-  line: 's3', <<<
-```
-
-- response (For this kind of reqeust `transports` always with 1 element only):
-  Only results for `S-bahn S3` where `segments` are items with different departure times in any direction;
-
-```js
-{
-  transports: [{
-    segment_transport: {
-      transport: "sbahn",
-      line: "S3",
-      color: "....",
-      text_color: "...",
-      scheme: "...",
-  },
-  segments: [
-    {
-      departure_info: {
-        plan_date: "2023-08-09T16:25:06.274",
-        actual_date: "2023-08-09T16:35:06.274",
-      },
-      direction: "Mangfallplatz",
-      transport_info: {
-        line: "S3",
-        transport: "sbahn",
-        scheme: "VBB",
-        color: "#fff",
-        text_color: "rgba(0, 0, 0, 0.54)",
-      },
-      interruption_type: "delayed",
-      platform: "",
-    },
-    ...
-  ],
-  }]
-}
-
-```
-
-_The behavior for sub-stop is the same. Only Difference in request params `primary_stop_title` will be added_
-
----
-
-## 5. Station table additional results API:
-
-- Request params:
-
-```ts
-interface CommomStationFetchParams {
-  name: string;
-  city: string;
-  state: string;
-  country: string;
-
-  primary_stop_title?: string;
-  transport_type?: string;
-  line?: string;
-}
-```
-
-- Additional info response:
-
-```ts
-interface AdditionalStationsResponse {
-  nearest_connections?: AdditionalStationItem[];
-  sub_stations?: AdditionalStationItem[];
-
-  local_popular_connections?: AdditionalStationItem[];
-  intercity_popular_connections?: AdditionalStationItem[];
-
-  available_connections?: TransportInfo[];
-}
-```
-
-Nested interfaces:
-
-```ts
-interface AdditionalStationItem {
-  departure_info: StopPointInfo;
-
-  transport_list?: TransportsTypes[]; // ['sbahn', 'ubahn', 'bus' ...]
-  arrival_info?: StopPointInfo;
-  additional_info?: {
-    distance?: number;
-    price_from?: number;
-    duration?: string;
-  };
-}
-
-type StopPointInfo = {
-  stop_title: string;
-  short_title: string;
-  city_name: string;
-  country_name: string;
-  state_name: string;
-  place_type: "city" | "stop" | "street";
-
-  // stop exist if it is sub-station
-  primary_stop_title?: string;
-  primary_stop_short_title?: string;
+const nextObj = {
+  name: 'dsa',
+  next: {...}
 };
 ```
 
-**Based on incoming params to BE responses can vary:**
-**Examples**
+- Стек (LIFO - Last In First Out), структура данных, работает по принципу LIFO. 
+- Очередь (FIFO - First In First Out), структура данных, работает по принципу FIFO.
 
-1.
+- Множество (Set) - неупорядоченная коллекция элементов, которая содержит только уникальные элементы.
 
-- request
+- Map - это структура, которая хранит данные в парах ключ/значение, где каждый ключ уникален
+
+- Хэш-таблица - это похожая на Map структура, которая содержит пары ключ/значение. Она использует хэш-функцию для вычисления индекса в массиве из блоков данных, чтобы найти желаемое значение.
+
+- Дерево -  это структура, данные в которой лежат в узлах. У каждого узла могут быть один или несколько дочерних и только один родитель
+
+- Граф (Графы) — это совокупности узлов (вершин) и связей между ними (рёбер). Также их называют сетями.
+Графы делятся на два основных типа: ориентированные и неориентированные
+____
+
+React вопросы:
+
+**Q: Работал ли классовыми компонентами ?**
+**Q: Какой жизненный цикл?**
+A: 
+`constructor => (getDerivedStateFromProps) => render => componentDidMount => 
+(shouldComponentUpdate) => render => componentDidUpdate => componentWillUnmount`
+
+**Q:Надо написать todo + redux. Давай поразмышляем как это будет на react**
+
+**Q: Нужно реализовать модалку как бы ты это сделал ?**
+
+**Q: Какие интсрументы используешь для дебага в  реакте?**
+A: 
+- React-devtools;
+- debugger;
+
+**Q:Что делает map и как использовать его в рамках React**
+
+**Q: Какие основные хуки в основном используешь в реакте и какие есть вообще?**
+A: 
+- useState
+- useMemo
+- useEffect
+- useLayoutEffect
+- useRef
+- useCallback
+- useContext
+- useReducer
+
+- useImperativeHandle
+- useDeferredValue
+- useTransition
+
+**Q: Зачем в useEffect используется второй аргумент? Что будет, если его оставить пустым или положить пустой массив?**
+**Q Можно ли использовать в useEffect async callback?**
+**Q: Испоьзовал ли react reducers?**
+
+**Q: Что такое state lifting?**
+**Q: Что такое function as a child ?** 
+
+**Q: Использовали ли вы TypeScript? Какой ваш опыт использования его с реактом? Что используешь для описания типа type или interface? Какую разницу между ними видишь для себя?**
+
+
+**Q: Что такое High Order Component (HOC)? Какую задачу он решает? Можете ли вы привести примеры где он используется?**
+
+**Q: Что такое context api? Какую задачу он решает?**
+A: API для создания специальных компонентов (Context Provider и Context Consumer), которые позволяют передать props минуя компоненты-посредники. 
+Context API вполне может служить заменой redux (или аналогичной библиотеки), предоставляя общий store с информацией.
+
+
+**Q: Что такое React.Portal? Какую задачу он решает?**
+A: React.Portal позволяет рендерить дочерние элементы в DOM-узел, которые находится вне DOM-иерархии родительского элемента. Иными словами, он позволяет рендерить компонент в любое-другое место в доме. 
+Например рендерить title и meta в head. Либо создать модальное окно, которое находится вне div#root.
+
+
+**Q: С какими библиотеками для анимации вы работали? Какая понравилась больше (или меньше) всех и почему?**
+A: Общий вопрос для понимания опыта разработчика. 
+Примеры библиотек:
+React-only:
+React-transition-group (самая распространенная, в основном для css анимаций)
+React-spring
+React pose
+React framer motion 
+Агностические библиотеки:
+GreenSock
+AnimeJs
+
+
+На размышление:
+
+**Q: Необходимо создать reducer который будет хранить глобальное состояние для всего приложения? Как это можно реализовать чтобы для всех компонентов был один и тот же reducer?**
+A: createContext => ContextProvider => useReducer => useContext
+
+**Q: мне необходимо получить размер элемента в текущемен компоненте, как это сделать?** (можно ли получить правильное значение рефа в useMemo? Почему)
+A: использовать useRef и присвоить значение рефа рефу необходимого элемента. На useEffect выполнить необходимые действия
+
+**Q: Что такое кастомные хуки? Писал ли свои и приведи пример какогонибудь часто используемого?**
+**Q: Какое есть основное правило хуков?**
+
+
+Redux:
+Q: Опишите общий флоу работы редакса:
+A: UI => Action Creator => dispatch action => store uptade => UI
+
+**Q: С какими middleware вы работали? Что понравилось больше / меньше и почему?**
+A: Общий вопрос. Примеры могут быть:
+redux-thunk
+redux-saga
+redux-observable
+
+**Q: Что такое нормализация стора? В чем плюсы иметь нормализованный стор? Доводилось ли вам нормализовывать и почему?**
+A: Нормализация это превращение вложенных структур в несколько плоских. Можно использовать свое решение или библиотеки вроде Normalizr.
+Плюсы:
+Проще обновлять и следить
+Сторы занимают меньше памяти, так как не приходится дублировать данные
+
+
+NextJs
+**Q: Работал ли с next.js ?** 
+**Q: Что нибудь знаешь про nextjs app rounting?**
+**Q: Какую задачу решает next.js?**
+A: Решает задачу SEO
+
+**Q: Что такое SSR, CSR и SSG? Ответ развернутый**
+A: 
+- SSR - server side rendering
+- CSR - client side rendering
+- SSG - static site generation
+
+
+**Q: Что такое регидратация**
+A: 
+В Next.js регидратация (rehydration) является процессом восстановления состояния клиентского приложения после его первоначальной загрузки на стороне сервера.
+
+Next.js поддерживает серверный рендеринг (Server-Side Rendering, SSR), что означает, что HTML-код генерируется на сервере и отправляется клиенту уже с заполненными данными. Когда клиент получает этот HTML-код, он выполняет регидратацию, то есть повторно создает и инициализирует компоненты с сохраненными данными.
+
+**Q:Как осуществляеться роутинг в приложении?**
+
+**Q: Какие методы получения данных используються для SSG и SSR ? Где исполняються эти методы? Можешь тогда рассказать как происходит получение данных при переходе между страницами**
+A: 
+SSG - getStaticProps, getStaticPaths
+SSR - getServerSideProps
+
+**Q:Как Я могу получить данные исключительно на клиете?** 
+useEffect
+
+**Q: Как можно сказать nextjs чтобы он не вызывал метод getServerSideProps?**
+A: shallow: true в пределах текущего роута.То есть только изменение query
+
+**Q: Где можно обявить глобальный provider будть то для redux или то для context?**
+A: _app
+
+**Q: Знаешь что такое rewrites в nextjs?**
+
+**Q: Допустим у тебя есть instance axios с Bearer token из localStorage, могут ли у меня возниктнуть проблемы в текущей реализации в nextjs?**
 
 ```js
-  name: 'berlin-hauptbahnhof',
-  city: 'berlin',
-  state: 'berlin',
-  country: 'deutschland',
-```
-
-- response
-
-```js
-const response = {
-  intercity_popular_connections: [
-    {
-      departure_info: {
-        city_name: "Berlin",
-        country_name: "Deutschland",
-        short_title: "Berlin",
-        state_name: "Berlin",
-        stop_title: "Berlin Hauptbahnhof",
-        place_type: "city",
-      },
-      arrival_info: {
-        city_name: "München",
-        country_name: "Deutschland",
-        short_title: "München",
-        state_name: "Bayern",
-        place_type: "city",
-        stop_title: "München",
-      },
-      additional_info: {
-        duration: "03:40",
-        price_from: 4700,
-      },
-    },
-    //...
-  ],
-  local_popular_connections: [
-    {
-      departure_info: {
-        city_name: "Berlin",
-        country_name: "Deutschland",
-        short_title: "Berlin",
-        state_name: "Berlin",
-        stop_title: "Berlin Hauptbahnhof",
-        place_type: AutocompleteItemTypes.city,
-      },
-      arrival_info: {
-        city_name: "München",
-        country_name: "Deutschland",
-        short_title: "München",
-        state_name: "Bayern",
-        stop_title: "München",
-        place_type: AutocompleteItemTypes.city,
-      },
-      additional_info: {
-        duration: "00:48",
-      },
-    },
-    //...
-  ],
-
-  // If station have sub stations then this field exist
-  // if not then `nearest_connections`
-  sub_stations: [
-      departure_info: {
-        city_name: 'Berlin',
-        country_name: 'Deutschland',
-        short_title: 'Berlin Hbf (Nord)',
-        state_name: 'Berlin',
-        stop_title: 'Berlin Hbf (Nord)',
-        place_type: 'city',
-
-        primary_stop_title: 'Berlin Hauptbahnhof',
-        primary_stop_short_title: 'Berlin',
-      },
-      transport_list: [
-        'ubahn',
-        'sbahn',
-        'bus',
-      ],
-      //...
-  ],
-
-  // or nearest_connections instead of `sub_stations`:
-  nearest_connections: [
-    {
-      departure_info: {
-        city_name: 'Berlin',
-        country_name: 'Deutschland',
-        short_title: 'Berlin Hauptbahnhof',
-        state_name: 'Berlin',
-        stop_title: 'Berlin Hauptbahnhof',
-        place_type: 'city',
-      },
-      transport_list: [
-        'ubahn',
-        'sbahn',
-        'bus',
-      ],
+const axiosInstance = axios.create({
+  baseUrl: 'http://localhost:3000',
+})
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  ]
-};
-```
+    return config;
+  }
+)
 
-2. 
-- request:
-
-```js
-  name: 'berlin-hauptbahnhof',
-  city: 'berlin',
-  state: 'berlin',
-  country: 'deutschland',
-  transport_type: 'sbahn', << 
-```
-
-- response:
-All additional available transports for respective station. 
-```js
-
-const response = {
-  available_connections: [
-    {
-      transport: 'regional_long-distance'
-    },
-    {
-      transport: 'ubahn'
-    },
-    {
-      transport: 'bus'
-    }
+//... гдето в pages
+const getServerSideProps = async (ctx) => {
+  try {
+    const response = await axiosInstance.get('api/users/list');
     //...
-  ]
+  
+    return {
+      props: {
+        //...
+      }
+    }
+  } catch(error) {
+    //...
+    return {
+      redirect: {
+        destination: '/login',
+      }
+    }
+  }
 }
-
 ```
 
 
-3. 
-- request:
 
-```js
-  name: 'berlin-hauptbahnhof',
-  city: 'berlin',
-  state: 'berlin',
-  country: 'deutschland',
-  transport_type: 'sbahn', <<<
-  line: 's3', <<< 
-```
-
-- response:
-All additional available lines for respective station and respective transport type. 
-```js
-
-const response = {
-  available_connections: [
-    {
-      transport: 'sbahn'
-      line: 's7',
-      color: '...',
-      text_color: '...',
-      scheme: '....'
-    },
-    {
-      transport: 'sbahn'
-      line: 's4',
-      color: '...',
-      text_color: '...',
-      scheme: '....'
-    },
-    {
-      transport: 'sbahn'
-      line: 's8',
-      color: '...',
-      text_color: '...',
-      scheme: '....'
-    }
-    //...
-  ]
-}
-
-```
+Could you try to explain how `map` works? 
+Waht about arguments? (current_item, index, array) 
+So it will be a new array or an old one but with the new values? 
