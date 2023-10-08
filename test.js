@@ -1,12 +1,15 @@
-const parseString = (string) => {
-  const valueToParse = string.trim();
-  const result = [];
-  let maxLength = 140 - 4;
-
-  if (valueToParse.length <= 140) {
-    return [valueToParse];
+function foo() {
+  const x = 13;
+  return {
+    x: 20,
+    foo() {
+      
+    },
+    bar() {
+      console.log(this.x)
+    },
+    baz: () => {
+      console.log(this.x)
+    }
   }
-
-  
-
 }
