@@ -1,74 +1,31 @@
-gitDff = 1;
+#### FE optimizations: 
 
-### STAFF 
-Для развертывания проекта в `dev` режиме необходимо иметь 
-- [Staff web (React)](https://git.fusion-tech.pro/fusion-staff/staff-web)
-- [Staff CRM web (Angular)](https://git.fusion-tech.pro/fusion-staff/staff-crm-web)
-- [Staff API (Express + TypeORM + Sequelize)](https://git.fusion-tech.pro/fusion-staff/staff-api)
-- [OLD Staff API](https://git.fusion-tech.pro/fusion-staff/old-staff-api)
-- Postgresql DB
+Why NextJS load json files which not used on current page:
+- NextJs preload page data for potential pages which can be opened and preload all data for pages which links are in viewport. But for the current page there are no data within Json files, and page already prepared on server side. And in general those files should not affect on initial page load since them loads only after page already rendered. 
 
-**Флоу работы:**
-
-- `Staff web (React)` отвечает за интерфейс основного стафф функционала и необходим для регистации/авторизации в приложении. Из него происходит переход на CRM стаффа (Staff CRM web).
-
-- `Staff CRM web (Angular)` отвеает за функционалл CRM части. Работает с  `OLD Staff API` в паре. Все запросы в стафф CRM отсылаются в `OLD Staff API` через сокеты которые так же инициализированны на `OLD Staff API` сервере.
-
-- `Staff API` (Express + TypeORM + Sequelize) отвечает за функционал основного стафф приложения.
-
-
-### Конфигурация
-
-**1. Staff Web**
- - Установить модули `npm install`
- - Запустить приложение `npm start`
-
-**2. Staff CRM Web**
-- node 16
-- установить зависимость через angular cli 11 `sudo npm link @angular/cli@11 --legacy-peer-deps`
-- изменить настройки `src/environments/environment` с `proxy` на `development` (Regular dev process)
-- ng serve
-
-Сокеты будут крутится на порте `4001` согласно конфигурации environment файла. 
-
-**3. Staff API**
-- node 16
-- установить зависимости `npm install`
-- необходиму  установать `sequlize` и `sequlize-cli` глобально - `npm install -g sequelize sequelize-cli`
-- создать `.env` фаил и вынести креды для `BD` в него
-```
-POSTGRES_DB_HOST="localhost"
-POSTGRES_DB_PORT="5432"
-POSTGRES_DB_USER="postgres"
-POSTGRES_DB_PASSWORD="postgres"
-POSTGRES_DB_NAME="staff-fusion_local"
-POSTGRES_DB_LOGGING="false"
-
-
-LEGACY_SOCKETS_PORT="4001"
-LEGACY_SOCKETS_ROOMS_HR="hr"
-LEGACY_SOCKETS_ROOMS_ADMIN="admin"
-```
-- для начала необходимо запустить `npm run build`
-- запустить миграции для sequelize - `npm run db:old:migrate:up`
-- запустить миграции для typeorm - `npm run db:migrate:up`
-- запустить `npm run start`
+But we can disable it so Next js won't preload those files on appearens in viewport. It will reduce amount of requests.    
 
 
 
-**4. Old Staff Api**
-- node 16
-- установить зависимости `npm install`
-- изменить настройки `config > config.json > development > изменить на данные локальной бд, поднятой в staff api`
-- изменить настройки `config > default config > development > изменить port, secret, url(port), dbConfig(username, password, dbName)`
-- secret для токена назначить такой же как и в `Staff API` `.defaultEnv.TOKEN_SECRET`
-- в  `sockets > notify.js` если нету условия как прописано ниже то добавить либо закоментировать код связанный с `webpush`
-```
-if (env !== 'development') {
-  webpush.setVapidDetails(
-    `mailto:${config.vapidMail}`,
-    config.vapidPublicKey,
-    config.vapidPrivateKey
-  );
-}
-```
+> Is it possible to split this file into 1 json per blog
+
+In our case no. Since the pages generated as a static HTML in build time. And Next js collect all the data for those pages in JSON files. Pages should have full data on build time in SEO purposes so server respond with already prefilled page.
+
+
+> I am also still seeing the json file with references to
+https://strapi-softailed-dev.s3.us-east-2.amazonaws.com/blog-softailed.png
+
+Since images collected on S3 and strapi still download them to S3, so when data fetched from strapi there are links to S3 images in strapi BD. In test purposes (dev serer) we handle those links on NextJs side and redo to local links. But after we move to custom storage there won't be S3 links in strapi. And Inga need to updated strapi image upload integration in future for custom storage.
+
+
+> I would like, at the bare minimum to have the scripts split into individual libraries (1 per js file, queued in the same order of execution).
+
+Next js alredy have optimized `splitChunksConfigs` under the hood. But in general I think we can split chunks into smaller parts  by dynamic load. But this requires a deeper immersion in the code to find places which can be lazy loaded. It's a big investigation work. But we cant garantee high prefomace improvements. 
+
+> have multiple libraries merged (judging from the @license calls), which causes scripts to run for too long on the main thread (anything above 50 ms is considered slow).
+
+It maybe will be resolved by dynamic imports, if those libraries don't need during 
+
+
+
+After all that changes and investigations we suggest to spent time and do performance investigation based on our experience. We have direct access to code and environment so we can affect on different code places.
